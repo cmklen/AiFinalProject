@@ -14,6 +14,6 @@ cutoff = 5
 coolGuy = gen.Genetic(mutRate, mutType, popSize, crossType, cutoff, gridSize)
 
 # we want to probably pass a file here and have the class read it into a grid data type
-coolGuy.populateGrid([(1,2, 3,4), (4,4, 1,4), (0,2, 3,2)])
+coolGuy.PopulateGrid([(1,2, 3,4), (4,4, 1,4), (0,2, 3,2)])
 
 coolGuy.RunAlgorithm()
