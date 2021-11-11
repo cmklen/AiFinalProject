@@ -2,6 +2,7 @@
 # CSE 525 - Final Project 
 # Code for running a genetic algorithm on the numberlink problem
 import numpy as np
+import re
 
 Population = 0
 Fitnesses = 1
@@ -18,12 +19,19 @@ class Genetic():
         self.grid = np.zeros((gridSize, gridSize), dtype=int)
 
     # read in the locations of the starting numbers 
-    def PopulateGrid(self, coordinates):
+    def PopulateGrid(self, testPath, fileName):
+        fileName = testPath+fileName
         numberToPlace = 1
-        for coord in coordinates:
-            self.grid[coord[0]][coord[1]] = numberToPlace
-            self.grid[coord[2]][coord[3]] = numberToPlace
-            numberToPlace = numberToPlace + 1
+        count = 1
+        with open(fileName, "r") as f:
+            data = f.readlines()
+            for line in data:
+                lineList = re.split(':|,|\n', line)
+                self.grid[int(lineList[1])-1][int(lineList[2])-1] = numberToPlace
+                if (count % 2) == 0:
+                    numberToPlace += 1
+                count += 1
+        #print() #TESTING, use this as breakpoint to check grid
 
     #Randomly guess next path from current location
     def __FindRandomAdjacentPath(self, x, y, population):

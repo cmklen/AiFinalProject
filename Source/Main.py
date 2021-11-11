@@ -3,17 +3,14 @@
 # Glue code for all numberlink files
 
 import Genetic as gen
+import os
 
-gridSize = 5
-mutRate = 0.008
-mutType = "Random"
-popSize = 10
-crossType = "Crossy"
-cutoff = 5
+coolGuy = gen.Genetic(mutRate=.008, mutType="Random", popSize=10, crossType="Crossy", cutoff=5, gridSize=7)
 
-coolGuy = gen.Genetic(mutRate, mutType, popSize, crossType, cutoff, gridSize)
+#Get directory that the test files are in
+curDir = os.getcwd()
+TestPath = curDir+"\\Source"+"\\TestData\\"
 
-# we want to probably pass a file here and have the class read it into a grid data type
-coolGuy.PopulateGrid([(1,2, 3,4), (4,4, 1,4), (0,2, 3,2)])
+coolGuy.PopulateGrid(TestPath, "7x7.txt")
 
 coolGuy.RunAlgorithm()
