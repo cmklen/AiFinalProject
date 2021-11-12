@@ -120,32 +120,29 @@ class Genetic():
         for i in range(0, self.gridSize):
             print(gridToPrint[i])
 
-    #Find the connected cities and return a count of how many
+    #Find the valid paths between numbers and return a count of how many are valid
     def __CountValidPaths(self, individual):
-        #*********something is funky with the 2d array, individual here isn't a *numpy* array so it has to be cast
         connectedNumbers = 0
-        startIndexes = []
 
         for i in range(1, self.NumberofNumbers + 1):
-            isConnect = True
+            isValid = True
+            #cursed lol, returns a list of all coordinates 9as tuples) of the given numer i
             curNumCoordList = list(zip(np.where(np.array(individual) == i)[0], np.where(np.array(individual) == i)[1]))
             for j in range(0, len(curNumCoordList) - 1):
                 currentX, currentY = curNumCoordList[j]
                 nextX, nextY = curNumCoordList[j + 1]
-                #indexes are in order, if we jump more than 1 square then there must be a disconnect
+                #indexes are in order, if we jump more than 1 square then there must be a disconnect or doubleback
                 if (currentX + 1 == nextX and currentY == nextY) or \
                    (currentY + 1 == nextY and currentX == nextX) or \
                    (currentX - 1 == nextX and currentY == nextY) or \
                    (currentY - 1 == nextY and currentX == nextX):
                     continue
                 else:#number must not be connected
-                    isConnect = False
+                    isValid = False
                     break
 
-            if (isConnect):
+            if (isValid):
                 connectedNumbers+=1
-
-            print("coord list ", i, curNumCoordList, isConnect)
 
         return connectedNumbers
 
@@ -177,9 +174,9 @@ class Genetic():
                 newChild2 = self.Mutate(newChild2)
 
             newGeneration[Population].append(newChild1)
-            # newGeneration[Fitnesses].append(self.DetermineFitness(newChild1))
+            newGeneration[Fitnesses].append(self.DetermineFitness(newChild1))
             newGeneration[Population].append(newChild2)
-            # newGeneration[Fitnesses].append(self.DetermineFitness(newChild2))
+            newGeneration[Fitnesses].append(self.DetermineFitness(newChild2))
 
         return newGeneration
 
@@ -203,6 +200,7 @@ class Genetic():
         print("Final Gen:")
         for i in range(0, self.popSize):
             self.__PrintGrid(currentGeneration[Population][i])
+            print("Fitness:", currentGeneration[Fitnesses][i])
             print("**************************************")
 
         #be careful here, this will not return a deep copy at the moment
