@@ -3,11 +3,12 @@
 # Provides a visual representaion of solutions to the numbelink problem
 import matplotlib.pyplot as plt
 from matplotlib import colors
+import matplotlib.patheffects as PathEffects
 
-def DisplayGame(Array, numbersNeeded):
-    Name = str(len(Array[0])) + "x" + str(len(Array[0]))
+def DisplayGame(array,startArray, numbersNeeded):
+    gridSize = len(array[0])
+    Name = str(gridSize) + "x" + str(gridSize)
     FileName = Name + "Graph.png"
-
 
     fig = plt.figure(figsize=(8, 4))
 
@@ -17,14 +18,20 @@ def DisplayGame(Array, numbersNeeded):
     cmap = plt.cm.get_cmap("plasma", (numbersNeeded))
     #Set color to white under the threshold (anything under 1)
     cmap.set_under('w')
-    plt.imshow(Array, cmap=cmap, vmin=.9)
+    plt.imshow(array, cmap=cmap, vmin=.9)
     ax.set_aspect('equal')
 
-    cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
-    cax.get_xaxis().set_visible(False)
-    cax.get_yaxis().set_visible(False)
-    cax.patch.set_alpha(0)
-    cax.set_frame_on(False)
+    ax = plt.gca()
+    ax.axes.xaxis.set_ticklabels([])
+    ax.axes.yaxis.set_ticklabels([])
+    ax.axes.xaxis.set_ticks([]) 
+    ax.axes.yaxis.set_ticks([])
     plt.colorbar(orientation='vertical')
+
+    for i in range(gridSize):
+        for j in range(gridSize):
+            if startArray[j,i] == 0: continue
+            text = ax.text(i,j,startArray[j,i],ha="center",va="center",color="w",size="12")
+            text.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='black')])
     plt.savefig(FileName)
     plt.show()
