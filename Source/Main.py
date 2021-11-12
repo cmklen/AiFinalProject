@@ -4,6 +4,7 @@
 
 import Genetic as gen
 import os
+import GUI as gui
 
 coolGuy = gen.Genetic(mutRate=.008, mutType="Random", popSize=10, crossType="Crossy", cutoff=5, gridSize=7)
 
@@ -13,4 +14,5 @@ TestPath = curDir+"\\Source"+"\\TestData\\"
 
 coolGuy.PopulateGrid(TestPath, "7x7.txt")
 
-coolGuy.RunAlgorithm()
+finalGen = coolGuy.RunAlgorithm()
+gui.DisplayGame(finalGen[0][0])
