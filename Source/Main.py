@@ -14,4 +14,4 @@ TestPath = "TestData/"
 numberNeeded = coolGuy.PopulateGrid(TestPath, "7x7.txt")
 
 finalGen = coolGuy.RunAlgorithm()
-gui.DisplayGame(finalGen[0][0], numberNeeded)
+gui.DisplayGame(finalGen[0][0], coolGuy.grid, numberNeeded)

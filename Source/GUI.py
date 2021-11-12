@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 import matplotlib.patheffects as PathEffects
 
-def DisplayGame(array,startArray, numbersNeeded):
+def DisplayGame(array, startArray, numbersNeeded):
     gridSize = len(array[0])
     Name = str(gridSize) + "x" + str(gridSize)
     FileName = Name + "Graph.png"
