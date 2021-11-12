@@ -57,7 +57,7 @@ class Genetic():
                 if y - 1 >= 0:
                     if population[x][y-1] == 0:
                         return (x, y-1)
-            
+
         return (-1, -1)
 
     #create random intial population
