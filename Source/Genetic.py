@@ -112,7 +112,7 @@ class Genetic():
                 currentNumber = (currentNumber+1)%(self.NumberofNumbers+1)
 
             newGeneration[Population].append(newPopulation)
-            # newGeneration[Fitnesses].append(self.DetermineFitness(newPopulation))
+            newGeneration[Fitnesses].append(self.DetermineFitness(newPopulation))
 
         return newGeneration
 
