@@ -31,6 +31,7 @@ class Genetic():
                 if (count % 2) == 0:
                     numberToPlace += 1
                 count += 1
+        return (numberToPlace - 1)
         #print() #TESTING, use this as breakpoint to check grid
 
     #Randomly guess next path from current location
@@ -112,7 +113,6 @@ class Genetic():
 
                 currentNumber = (currentNumber+1)%(self.NumberofNumbers+1)
 
-            newGeneration[Population].append(newPopulation)
             newGeneration[Population].append(newPopulation)
             newGeneration[Fitnesses].append(self.DetermineFitness(newPopulation))
 

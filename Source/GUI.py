@@ -2,8 +2,9 @@
 # CSE 525 - Final Project 
 # Provides a visual representaion of solutions to the numbelink problem
 import matplotlib.pyplot as plt
+from matplotlib import colors
 
-def DisplayGame(Array):
+def DisplayGame(Array, numbersNeeded):
     Name = str(len(Array[0])) + "x" + str(len(Array[0]))
     FileName = Name + "Graph.png"
 
@@ -12,7 +13,11 @@ def DisplayGame(Array):
 
     ax = fig.add_subplot(111)
     ax.set_title(Name)
-    plt.imshow(Array)
+    #Determine which color scheme to use and how many colors to select
+    cmap = plt.cm.get_cmap("plasma", (numbersNeeded))
+    #Set color to white under the threshold (anything under 1)
+    cmap.set_under('w')
+    plt.imshow(Array, cmap=cmap, vmin=.9)
     ax.set_aspect('equal')
 
     cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
