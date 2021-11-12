@@ -57,7 +57,7 @@ class Genetic():
                 if y - 1 >= 0:
                     if population[x][y-1] == 0:
                         return (x, y-1)
-        
+            
         return (-1, -1)
 
     #create random intial population
@@ -72,8 +72,8 @@ class Genetic():
             indexes = []
 
             #generate list of starting number locations
-            for i in range(1, self.NumberofNumbers + 1):
-                foundIndex = np.where(self.grid == i)
+            for j in range(1, self.NumberofNumbers + 1):
+                foundIndex = np.where(self.grid == j)
                 indexes.append(list(zip(foundIndex[0], foundIndex[1])))
 
             #fill the grid
@@ -97,8 +97,6 @@ class Genetic():
                     elif currentNumber in partialFinishedNums:
                         if currentNumber not in finishedNums:
                             finishedNums.append(currentNumber)
-                            # print("num:", currentNumber)
-                            # print(newPopulation)
                         if len(finishedNums) == self.NumberofNumbers:
                             break
                     currentNumber = (currentNumber+1)%(self.NumberofNumbers+1)
@@ -114,7 +112,7 @@ class Genetic():
                 currentNumber = (currentNumber+1)%(self.NumberofNumbers+1)
 
             newGeneration[Population].append(newPopulation)
-            newGeneration[Fitnesses].append(self.DetermineFitness(newPopulation))
+            # newGeneration[Fitnesses].append(self.DetermineFitness(newPopulation))
 
         return newGeneration
 
@@ -122,9 +120,49 @@ class Genetic():
         for i in range(0, self.gridSize):
             print(gridToPrint[i])
 
+    #Find the connected cities and return a count of how many
+    def __CountValidPaths(self, individual):
+        #*********something is funky with the 2d array, individual here isn't a *numpy* array so it has to be cast
+        connectedNumbers = 0
+        startIndexes = []
+
+        for i in range(1, self.NumberofNumbers + 1):
+            isConnect = True
+            curNumCoordList = list(zip(np.where(np.array(individual) == i)[0], np.where(np.array(individual) == i)[1]))
+            for j in range(0, len(curNumCoordList) - 1):
+                currentX, currentY = curNumCoordList[j]
+                nextX, nextY = curNumCoordList[j + 1]
+                #indexes are in order, if we jump more than 1 square then there must be a disconnect
+                if (currentX + 1 == nextX and currentY == nextY) or \
+                   (currentY + 1 == nextY and currentX == nextX) or \
+                   (currentX - 1 == nextX and currentY == nextY) or \
+                   (currentY - 1 == nextY and currentX == nextX):
+                    continue
+                else:#number must not be connected
+                    isConnect = False
+                    break
+
+            if (isConnect):
+                connectedNumbers+=1
+
+            print("coord list ", i, curNumCoordList, isConnect)
+
+        return connectedNumbers
+
     #placeholder
     def DetermineFitness(self, individual):
-        return 0
+        #Fitness will be maximized, the maximal value will be according to the following formula
+        #fitMax = #ofNumsToConnect * weight + totalSquares
+        #The formula to calculate fitness will be as follows:
+        #fit = fitMax - #ofUnconnectedPairs * weight - #ofEmptySquares
+        weightOfConnectedness = 10
+        totalSquares = self.gridSize*self.gridSize
+        fitMax = (self.NumberofNumbers * weightOfConnectedness) + totalSquares
+        validPaths = self.__CountValidPaths(individual)
+        invalidPaths = self.NumberofNumbers - validPaths
+        emptySquares = totalSquares - np.count_nonzero(individual)
+
+        return fitMax - (invalidPaths * weightOfConnectedness) - emptySquares
 
     #creates a new generation from the passed one using crossover and mutation
     #be careful here, this will not return a deep copy at the moment
@@ -139,9 +177,9 @@ class Genetic():
                 newChild2 = self.Mutate(newChild2)
 
             newGeneration[Population].append(newChild1)
-            newGeneration[Fitnesses].append(self.DetermineFitness(newChild1))
+            # newGeneration[Fitnesses].append(self.DetermineFitness(newChild1))
             newGeneration[Population].append(newChild2)
-            newGeneration[Fitnesses].append(self.DetermineFitness(newChild2))
+            # newGeneration[Fitnesses].append(self.DetermineFitness(newChild2))
 
         return newGeneration
 
