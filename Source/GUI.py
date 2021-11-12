@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 import matplotlib.patheffects as PathEffects
 
-def DisplayGame(Array,StartArray, numbersNeeded):
+def DisplayGame(Array,startArray, numbersNeeded):
     gridSize = len(Array[0])
     Name = str(gridSize) + "x" + str(gridSize)
     FileName = Name + "Graph.png"
@@ -30,7 +30,7 @@ def DisplayGame(Array,StartArray, numbersNeeded):
 
     for i in range(gridSize):
         for j in range(gridSize):
-            if StartArray[j,i] == 0: continue
+            if startArray[j,i] == 0: continue
             text = ax.text(i,j,StartArray[j,i],ha="center",va="center",color="w",size="12")
             text.set_path_effects([PathEffects.withStroke(linewidth=2, foreground='black')])
     plt.savefig(FileName)
