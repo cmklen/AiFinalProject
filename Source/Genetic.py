@@ -15,7 +15,7 @@ class Genetic():
         self.crossType = crossType
         self.cutoff = cutoff
         self.gridSize = gridSize
-        self.NumberofNumbers = 3
+        self.NumberofNumbers = 15
         self.grid = np.zeros((gridSize, gridSize), dtype=int)
 
     # read in the locations of the starting numbers 

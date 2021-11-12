@@ -24,7 +24,7 @@ def DisplayGame(Array,StartArray, numbersNeeded):
     ax = plt.gca()
     ax.axes.xaxis.set_ticklabels([])
     ax.axes.yaxis.set_ticklabels([])
-    ax.axes.xaxis.set_ticks([])
+    ax.axes.xaxis.set_ticks([]) 
     ax.axes.yaxis.set_ticks([])
     plt.colorbar(orientation='vertical')
 
