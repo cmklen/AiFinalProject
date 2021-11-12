@@ -12,7 +12,7 @@ coolGuy = gen.Genetic(mutRate=.008, mutType="Random", popSize=10, crossType="Cro
 curDir = os.getcwd()
 TestPath = curDir+"\\Source"+"\\TestData\\"
 
-coolGuy.PopulateGrid(TestPath, "7x7.txt")
+numberNeeded = coolGuy.PopulateGrid(TestPath, "7x7.txt")
 
 finalGen = coolGuy.RunAlgorithm()
-gui.DisplayGame(finalGen[0][0])
+gui.DisplayGame(finalGen[0][0], numberNeeded)
