@@ -3,6 +3,8 @@
 # Code for running a genetic algorithm on the numberlink problem
 import numpy as np
 import re
+import random
+from itertools import product, starmap
 
 Population = 0
 Fitnesses = 1
@@ -15,7 +17,7 @@ class Genetic():
         self.crossType = crossType
         self.cutoff = cutoff
         self.gridSize = gridSize
-        self.NumberofNumbers = 3
+        self.NumberofNumbers = 0
         self.grid = np.zeros((gridSize, gridSize), dtype=int)
 
     # read in the locations of the starting numbers 
@@ -163,10 +165,14 @@ class Genetic():
 
     #creates a new generation from the passed one using crossover and mutation
     #be careful here, this will not return a deep copy at the moment
-    def Reproduce(self, currentGeneration):
+    #Create 2 children for every two children selected
+    def Reproduce(self, currentGeneration, numberOfNumbers):
         newGeneration = [[], []]
+
         for i in range(0, int(len(currentGeneration[Population])/2)):
-            newChild1, newChild2  = self.Crossover(currentGeneration[Population])
+            selectedIndivs = random.choices(currentGeneration[0], currentGeneration[1], k = 2)
+
+            newChild1, newChild2  = self.Crossover(selectedIndivs, numberOfNumbers)
 
             if (np.random.random() < self.mutRate):
                 newChild1 = self.Mutate(newChild1)
@@ -180,13 +186,49 @@ class Genetic():
 
         return newGeneration
 
-    #placeholder
-    def Crossover(self, population):
-        parent1 = population[0]
-        parent2 = population[1]
+    #Create 2 new children from the 2 selected parents
+    def Crossover(self, selectedIndivs, numberOfNumbers):
+        parent1 = selectedIndivs[0]
+        parent2 = selectedIndivs[1]
 
-        child1 = parent1 
-        child2 = parent2
+        child1 = np.zeros((len(selectedIndivs[0]), len(selectedIndivs[0])))
+        child2 = np.zeros((len(selectedIndivs[0]), len(selectedIndivs[0])))
+        child1 = child1.tolist()
+        child2 = child2.tolist()
+
+        for i in range(0, len(selectedIndivs[0])):
+            for j in range(0, len(selectedIndivs[0][0])):
+                gene = random.choice(selectedIndivs)
+                attempts = 0
+                while(gene[i][j] == 0):
+                    gene = random.choice(selectedIndivs)
+                    attempts += 1
+                    if attempts >= 5:
+                        """ x, y = (j, i) # matrix values here
+                        cells = starmap(lambda a,b: (x+a, y+b), product((0,-1,+1), (0,-1,+1)))
+                        gene[i][i] = 1 """
+                        #Placeholder assignment
+                        gene[i][j] = random.randint(0,numberOfNumbers) #REPLACE THIS WITH AN ADJACENT SPACE THAT ISNT 0
+                child1[i][j] = gene[i][j]
+
+        for i in range(0, len(selectedIndivs[0])):
+            for j in range(0, len(selectedIndivs[0][0])):
+                gene = random.choice(selectedIndivs)
+                attempts = 0
+                while(gene[i][j] == 0):
+                    gene = random.choice(selectedIndivs)
+                    attempts += 1
+                    if attempts >= 5:
+                        """ x, y = (j, i) # matrix values here
+                        cells = starmap(lambda a,b: (x+a, y+b), product((0,-1,+1), (0,-1,+1)))
+                        gene[i][i] = 1 """
+                        #Placeholder assignment
+                        gene[i][j] = random.randint(0,numberOfNumbers) #REPLACE THIS WITH AN ADJACENT SPACE THAT ISNT 0
+                child2[i][j] = gene[i][j]
+
+
+        #child1 = parent1 
+        #child2 = parent2
         return (child1, child2)
 
     #placeholder
@@ -204,8 +246,12 @@ class Genetic():
             print("**************************************")
 
         #be careful here, this will not return a deep copy at the moment
-        # for i in range(0, self.cutoff):
-        #     currentGeneration = self.Reproduce(currentGeneration)
+        for i in range(0, self.cutoff):
+            currentGeneration = self.Reproduce(currentGeneration, self.NumberofNumbers)
+
+            #Print out progress every so many generations
+            if(i % 50) == 0:
+                print(f'Generation {i}')
 
         print("Finished Running!")
         return currentGeneration
