@@ -33,7 +33,8 @@ class Genetic():
                 if (count % 2) == 0:
                     numberToPlace += 1
                 count += 1
-        return (numberToPlace - 1)
+
+        self.NumberofNumbers = numberToPlace - 1
         #print() #TESTING, use this as breakpoint to check grid
 
     #Randomly guess next path from current location
@@ -170,7 +171,7 @@ class Genetic():
         newGeneration = [[], []]
 
         for i in range(0, int(len(currentGeneration[Population])/2)):
-            selectedIndivs = random.choices(currentGeneration[0], currentGeneration[1], k = 2)
+            selectedIndivs = random.choices(currentGeneration[Population], currentGeneration[Fitnesses], k = 2)
 
             newChild1, newChild2  = self.Crossover(selectedIndivs, numberOfNumbers)
 
@@ -255,4 +256,8 @@ class Genetic():
 
         print("Finished Running!")
         return currentGeneration
+
+    #placeholder
+    def GetNumberOfNumbers(self):
+        return self.NumberofNumbers
 

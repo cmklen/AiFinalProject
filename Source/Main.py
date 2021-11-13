@@ -11,8 +11,8 @@ coolGuy = gen.Genetic(mutRate=.008, mutType="Random", popSize=150, crossType="Cr
 #Get directory that the test files are in
 TestPath = "TestData/"
 
-numberNeeded = coolGuy.PopulateGrid(TestPath, "7x7.txt")
-coolGuy.NumberofNumbers = numberNeeded
+coolGuy.PopulateGrid(TestPath, "7x7.txt")
+
 
 finalGen = coolGuy.RunAlgorithm()
-gui.DisplayGame(finalGen[0][0], coolGuy.grid, numberNeeded)
+gui.DisplayGame(finalGen[0][0], coolGuy.grid, coolGuy.GetNumberOfNumbers())
