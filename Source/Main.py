@@ -13,6 +13,6 @@ TestPath = "TestData/"
 
 coolGuy.PopulateGrid(TestPath, "7x7.txt")
 
-
 finalGen = coolGuy.RunAlgorithm()
 gui.DisplayGame(finalGen[0][0], coolGuy.grid, coolGuy.GetNumberOfNumbers())
+print()

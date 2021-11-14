@@ -5,6 +5,7 @@ import numpy as np
 import re
 import random
 from itertools import product, starmap
+import copy
 
 Population = 0
 Fitnesses = 1
@@ -175,9 +176,9 @@ class Genetic():
             newChild1, newChild2  = self.Crossover(selectedIndivs, numberOfNumbers)
 
             if (np.random.random() < self.mutRate):
-                newChild1 = self.Mutate(newChild1)
+                newChild1 = self.Mutate(newChild1, numberOfNumbers)
             if (np.random.random() < self.mutRate):
-                newChild2 = self.Mutate(newChild2)
+                newChild2 = self.Mutate(newChild2, numberOfNumbers)
 
             newGeneration[Population].append(newChild1)
             newGeneration[Fitnesses].append(self.DetermineFitness(newChild1))
@@ -204,11 +205,7 @@ class Genetic():
                     gene = random.choice(selectedIndivs)
                     attempts += 1
                     if attempts >= 5:
-                        """ x, y = (j, i) # matrix values here
-                        cells = starmap(lambda a,b: (x+a, y+b), product((0,-1,+1), (0,-1,+1)))
-                        gene[i][i] = 1 """
-                        #Placeholder assignment
-                        gene[i][j] = random.randint(0,numberOfNumbers) #REPLACE THIS WITH AN ADJACENT SPACE THAT ISNT 0
+                        break
                 child1[i][j] = gene[i][j]
 
         for i in range(0, len(selectedIndivs[0])):
@@ -219,21 +216,153 @@ class Genetic():
                     gene = random.choice(selectedIndivs)
                     attempts += 1
                     if attempts >= 5:
-                        """ x, y = (j, i) # matrix values here
-                        cells = starmap(lambda a,b: (x+a, y+b), product((0,-1,+1), (0,-1,+1)))
-                        gene[i][i] = 1 """
-                        #Placeholder assignment
-                        gene[i][j] = random.randint(0,numberOfNumbers) #REPLACE THIS WITH AN ADJACENT SPACE THAT ISNT 0
+                        break
                 child2[i][j] = gene[i][j]
 
-
-        #child1 = parent1 
-        #child2 = parent2
         return (child1, child2)
 
-    #placeholder
-    def Mutate(self, individual):
+    #Use a greedy algorithm to try and get a valid path
+    def Mutate(self, individual, numberOfNumbers):
+        numberPath = random.randint(1, numberOfNumbers)
+        #Find spaces where the nodes to connect are
+        curNumCoordList = list(zip(np.where(np.array(self.grid) == numberPath)[0], np.where(np.array(self.grid) == numberPath)[1]))
+
+        gridCopy = copy.deepcopy(self.grid)
+
+        self.createPath(numberPath, curNumCoordList, gridCopy)
+
+        #Copy path into individual
+        for i in range(0,len(individual)):
+            for j in range(0,len(individual)):
+                if individual[i][j] == numberPath:
+                    individual[i][j] = 0
+                if gridCopy[i][j] == numberPath:
+                    individual[i][j] = numberPath
+
         return individual
+
+
+    def createPath(self, numberPath, curNumCordList, gridCopy):
+        startPosition = curNumCordList[0]
+        endPosition = curNumCordList[1]
+        curPosition = startPosition
+        attempts = 0
+        while(True):
+            choice = random.randint(1,4)
+            if attempts > 5:
+                break
+
+            #Check if the next move could move to the end state
+            #Check right
+            if(curPosition[1] + 1 < len(gridCopy)) and (curPosition[0] == endPosition[0] and curPosition[1]+1 == endPosition[1]):
+                break
+            #Check up
+            if(curPosition[0] - 1 >= 0) and (curPosition[0]-1 == endPosition[0] and curPosition[1] == endPosition[1]):
+                break
+            #Check left
+            if(curPosition[0] - 1 >= 0) and (curPosition[0]== endPosition[0] and curPosition[1]-1 == endPosition[1]):
+                break
+            #Check down
+            if(curPosition[0] + 1 < len(gridCopy)) and (curPosition[0]+1 == endPosition[0] and curPosition[1] == endPosition[1]):
+                break
+
+            if choice == 1:
+                #Right option is available
+                if(curPosition[1] + 1 < len(gridCopy)) and gridCopy[curPosition[0]][curPosition[1]+1] == 0:
+                    gridCopy[curPosition[0]][curPosition[1]+1] = numberPath
+                    curPosition = (curPosition[0], curPosition[1]+1)
+                    attempts = 0
+                #Up option is available
+                elif(curPosition[0] - 1 >= 0) and gridCopy[curPosition[0]-1][curPosition[1]] == 0:
+                    gridCopy[curPosition[0]-1][curPosition[1]] = numberPath
+                    curPosition = (curPosition[0]-1, curPosition[1])
+                    attempts = 0
+                #Left option is available
+                elif(curPosition[1] - 1 >= 0) and gridCopy[curPosition[0]][curPosition[1]-1] == 0:
+                    gridCopy[curPosition[0]][curPosition[1]-1] = numberPath
+                    curPosition = (curPosition[0], curPosition[1]-1)
+                    attempts = 0
+                #Down option is available
+                elif(curPosition[0] + 1 < len(gridCopy)) and gridCopy[curPosition[0]+1][curPosition[1]] == 0:
+                    gridCopy[curPosition[0]+1][curPosition[1]] = numberPath
+                    curPosition = (curPosition[0]+1, curPosition[1])
+                    attempts = 0
+                else:
+                    attempts += 1
+            
+            if choice == 2:
+                #Up option is available
+                if(curPosition[0] - 1 >= 0) and gridCopy[curPosition[0]-1][curPosition[1]] == 0:
+                    gridCopy[curPosition[0]-1][curPosition[1]] = numberPath
+                    curPosition = (curPosition[0]-1, curPosition[1])
+                    attempts = 0
+                #Left option is available
+                elif(curPosition[1] - 1 >= 0) and gridCopy[curPosition[0]][curPosition[1]-1] == 0:
+                    gridCopy[curPosition[0]][curPosition[1]-1] = numberPath
+                    curPosition = (curPosition[0], curPosition[1]-1)
+                    attempts = 0
+                #Down option is available
+                elif(curPosition[0] + 1 < len(gridCopy)) and gridCopy[curPosition[0]+1][curPosition[1]] == 0:
+                    gridCopy[curPosition[0]+1][curPosition[1]] = numberPath
+                    curPosition = (curPosition[0]+1, curPosition[1])
+                    attempts = 0
+                #Right option is available
+                elif(curPosition[1] + 1 < len(gridCopy)) and gridCopy[curPosition[0]][curPosition[1]+1] == 0:
+                    gridCopy[curPosition[0]][curPosition[1]+1] = numberPath
+                    curPosition = (curPosition[0], curPosition[1]+1)
+                    attempts = 0
+                else:
+                    attempts += 1
+            
+            if choice == 3:
+                #Left option is available
+                if(curPosition[1] - 1 >= 0) and gridCopy[curPosition[0]][curPosition[1]-1] == 0:
+                    gridCopy[curPosition[0]][curPosition[1]-1] = numberPath
+                    curPosition = (curPosition[0], curPosition[1]-1)
+                    attempts = 0
+                #Down option is available
+                elif(curPosition[0] + 1 < len(gridCopy)) and gridCopy[curPosition[0]+1][curPosition[1]] == 0:
+                    gridCopy[curPosition[0]+1][curPosition[1]] = numberPath
+                    curPosition = (curPosition[0]+1, curPosition[1])
+                    attempts = 0
+                #Right option is available
+                elif(curPosition[1] + 1 < len(gridCopy)) and gridCopy[curPosition[0]][curPosition[1]+1] == 0:
+                    gridCopy[curPosition[0]][curPosition[1]+1] = numberPath
+                    curPosition = (curPosition[0], curPosition[1]+1)
+                    attempts = 0
+                #Up option is available
+                elif(curPosition[0] - 1 >= 0) and gridCopy[curPosition[0]-1][curPosition[1]] == 0:
+                    gridCopy[curPosition[0]-1][curPosition[1]] = numberPath
+                    curPosition = (curPosition[0]-1, curPosition[1])
+                    attempts = 0
+                else:
+                    attempts += 1
+            
+            if choice == 4:
+                #Down option is available
+                if(curPosition[0] + 1 < len(gridCopy)) and gridCopy[curPosition[0]+1][curPosition[1]] == 0:
+                    gridCopy[curPosition[0]+1][curPosition[1]] = numberPath
+                    curPosition = (curPosition[0]+1, curPosition[1])
+                    attempts = 0
+                #Right option is available
+                elif(curPosition[1] + 1 < len(gridCopy)) and gridCopy[curPosition[0]][curPosition[1]+1] == 0:
+                    gridCopy[curPosition[0]][curPosition[1]+1] = numberPath
+                    curPosition = (curPosition[0], curPosition[1]+1)
+                    attempts = 0
+                #Up option is available
+                elif(curPosition[0] - 1 >= 0) and gridCopy[curPosition[0]-1][curPosition[1]] == 0:
+                    gridCopy[curPosition[0]-1][curPosition[1]] = numberPath
+                    curPosition = (curPosition[0]-1, curPosition[1])
+                    attempts = 0
+                #Left option is available
+                elif(curPosition[1] - 1 >= 0) and gridCopy[curPosition[0]][curPosition[1]-1] == 0:
+                    gridCopy[curPosition[0]][curPosition[1]-1] = numberPath
+                    curPosition = (curPosition[0], curPosition[1]-1)
+                    attempts = 0
+                else:
+                    attempts += 1
+            #print()
+        return gridCopy
 
     #placeholder
     def RunAlgorithm(self):
