@@ -37,7 +37,20 @@ class Genetic():
         #print() #TESTING, use this as breakpoint to check grid
 
     #Randomly guess next path from current location
-    def __FindRandomAdjacentPath(self, x, y, population):
+    def __FindRandomAdjacentPath(self, x, y, population, currentNumber):
+        if y + 1 < self.gridSize:
+            if population[x][y+1] == currentNumber:
+                return (-2, -2)
+        if x + 1 < self.gridSize:
+            if population[x+1][y] == currentNumber:
+                return (-2, -2)
+        if x - 1 >= 0:
+            if population[x-1][y] == currentNumber:
+                return (-2, -2)
+        if y - 1 >= 0:
+            if population[x][y-1] == currentNumber:
+                return (-2, -2)
+        
         guesses = [1,2,3,4]
         np.random.shuffle(guesses)
 
@@ -78,11 +91,13 @@ class Genetic():
                 foundIndex = np.where(self.grid == j)
                 indexes.append(list(zip(foundIndex[0], foundIndex[1])))
 
+            firstNum = random.randint(0,1)
             #fill the grid
             while True:
                 if currentNumber == 0:
                     currentNumber = 1
-                if currentNumber not in partialFinishedNums:
+
+                if firstNum == 1:
                     x = indexes[currentNumber-1][0][0]
                     y = indexes[currentNumber-1][0][1]
                 else: #grab the second number start location
@@ -91,22 +106,21 @@ class Genetic():
 
                 x, y = self.__FindRandomAdjacentPath(x, y, newPopulation)
                 
+                if x == -2 or y == -2:
+                    finishedNums.append(currentNumber)
+
                 #no new path can be made
                 if x == -1 and y == -1:
-                    if currentNumber not in partialFinishedNums:
-                        partialFinishedNums.append(currentNumber)
-                        currentNumber = (currentNumber+1)%(self.NumberofNumbers+1)
-                    elif currentNumber in partialFinishedNums:
-                        if currentNumber not in finishedNums:
-                            finishedNums.append(currentNumber)
-                        if len(finishedNums) == self.NumberofNumbers:
-                            break
+                    if currentNumber not in finishedNums:
+                        finishedNums.append(currentNumber)
+                    if len(finishedNums) == self.NumberofNumbers:
+                        break
                     currentNumber = (currentNumber+1)%(self.NumberofNumbers+1)
                     continue
 
-                if currentNumber not in partialFinishedNums:
+                if firstNum == 1:
                     indexes[currentNumber-1][0] = (x,y)
-                elif currentNumber in partialFinishedNums:
+                else:
                     indexes[currentNumber-1][1] = (x,y)
 
                 newPopulation[x][y] = currentNumber
