@@ -149,6 +149,44 @@ class Genetic():
 
         return connectedNumbers
 
+    def CountStrayPath(self,array):
+        strayCount = 0
+
+        for i in range(self.gridSize):
+            for j in range(self.gridSize):
+                currentNum = array[i][j]
+                adjacentSpace = 0
+
+                #examine space above currentNum
+                try:
+                    if array[i][j-1] == currentNum: adjacentSpace +=1
+                except: 
+                    pass
+
+                #examine space to the left of currentNum
+                try:
+                    if array[i-1][j] == currentNum: adjacentSpace +=1
+                except: 
+                    pass
+
+                #examine space to the right of currentNum
+                try:
+                    if array[i+1][j] == currentNum: adjacentSpace +=1
+                except: 
+                    pass
+
+                #examine space below currentNum
+                try:
+                    if array[i][j+1] == currentNum: adjacentSpace +=1
+                except: 
+                    pass
+
+                if adjacentSpace == 0:
+                    strayCount += 1
+
+        return strayCount                   
+
+
     #placeholder
     def DetermineFitness(self, individual):
         #Fitness will be maximized, the maximal value will be according to the following formula
@@ -161,8 +199,9 @@ class Genetic():
         validPaths = self.__CountValidPaths(individual)
         invalidPaths = self.NumberofNumbers - validPaths
         emptySquares = totalSquares - np.count_nonzero(individual)
+        straySquares = self.CountStrayPath(individual)
 
-        return fitMax - (invalidPaths * weightOfConnectedness) - emptySquares
+        return fitMax - (invalidPaths * weightOfConnectedness) - emptySquares - straySquares
 
     #creates a new generation from the passed one using crossover and mutation
     #be careful here, this will not return a deep copy at the moment
