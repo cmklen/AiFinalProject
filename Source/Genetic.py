@@ -174,7 +174,51 @@ class Genetic():
                 if adjacentSpace == 0:
                     strayCount += 1
 
-        return strayCount     
+        return strayCount  
+
+    def FindUselessPath(self,individual,startAndFinish,CurrentNum):
+        containsPath = False
+        spaceToDelete = []
+        visited = []
+        isValid = True
+        targetCords = startAndFinish[CurrentNum-1]
+        cordsFound = 0
+        #cursed lol, returns a list of all coordinates 9as tuples) of the given numer i
+        curNumCoordList = list(zip(np.where(np.array(individual) == CurrentNum)[0], np.where(np.array(individual) == CurrentNum)[1]))
+        print("----------------------")
+        print(CurrentNum, ":")
+        print(curNumCoordList)
+        # for j in range(0, len(curNumCoordList) - 1):
+        startX, startY = targetCords[0]
+        endX, endY = targetCords[1]
+        currentSpace = targetCords[0]
+
+        while len(visited) != len(curNumCoordList):
+
+            visited.append(currentSpace)
+            
+
+            print("Current Cords: ",curNumCoordList[j])
+            if curNumCoordList[j] in targetCords: cordsFound +=1
+
+            currentX, currentY = curNumCoordList[j]
+            nextX, nextY = curNumCoordList[j + 1]
+            #indexes are in order, if we jump more than 1 square then there must be a disconnect or doubleback
+            if isValid == False and (curNumCoordList[j] not in targetCords):
+                spaceToDelete.append(curNumCoordList[j])
+            elif (currentX + 1 == nextX and currentY == nextY) or \
+               (currentY + 1 == nextY and currentX == nextX) or \
+               (currentX - 1 == nextX and currentY == nextY) or \
+               (currentY - 1 == nextY and currentX == nextX):
+                continue
+            else:#number must not be connected
+                isValid = False
+                # if cordsFound != 2:
+                #     break
+        if cordsFound == 2: isValid = True
+        if (isValid):
+            containsPath = True     
+        return(containsPath,spaceToDelete)
 
     def RemoveUselessPath(self, individual, originalArray):
 
@@ -196,52 +240,43 @@ class Genetic():
 
         print(startAndFinish)
 
-        spaceToDelete = []
         for i in range(1, self.NumberofNumbers + 1):
-            isValid = True
-            targetCords = startAndFinish[i-1]
-            cordsFound = 0
-            #cursed lol, returns a list of all coordinates 9as tuples) of the given numer i
-            curNumCoordList = list(zip(np.where(np.array(individual) == i)[0], np.where(np.array(individual) == i)[1]))
-            print("----------------------")
-            print(i, ":")
-            print(curNumCoordList)
-            for j in range(0, len(curNumCoordList) - 1):
-                print("Current Cords: ",curNumCoordList[j])
-                if curNumCoordList[j] in targetCords: cordsFound +=1
-                startX, startY = targetCords[0]
-                currentX, currentY = curNumCoordList[j]
-                nextX, nextY = curNumCoordList[j + 1]
-                #indexes are in order, if we jump more than 1 square then there must be a disconnect or doubleback
-                if isValid == False:
-                    spaceToDelete.append(curNumCoordList[j])
-                elif (currentX + 1 == nextX and currentY == nextY) or \
-                   (currentY + 1 == nextY and currentX == nextX) or \
-                   (currentX - 1 == nextX and currentY == nextY) or \
-                   (currentY - 1 == nextY and currentX == nextX):
-                    continue
-                elif (startX + 1 == nextX and startY == nextY) or \
-                   (startY + 1 == nextY and startX == nextX) or \
-                   (startX - 1 == nextX and startY == nextY) or \
-                   (startY - 1 == nextY and startX == nextX) or \
-                    (startY == nextY and startX == nextX):
-                    continue
-                else:#number must not be connected
-                    isValid = False
-                    if cordsFound != 2:
-                        break
-            if cordsFound == 2: isValid = True
-            if (isValid):
-                connectedNumbers+=1
-                PathList.append(i)
 
-            print("Number of Connections: ",connectedNumbers)
-            print("places to delete: ")
-            print(spaceToDelete)
+            Output = self.FindUselessPath(individual,startAndFinish,i)
+            print("The Path for", i,"is",Output[0])
+            print("spaces to delete: ")
+            print(Output[1])
 
 
-            
-        
+
+            # spaceToDelete = []
+            # isValid = True
+            # targetCords = startAndFinish[i-1]
+            # cordsFound = 0
+            # #cursed lol, returns a list of all coordinates 9as tuples) of the given numer i
+            # curNumCoordList = list(zip(np.where(np.array(individual) == i)[0], np.where(np.array(individual) == i)[1]))
+            # print("----------------------")
+            # print(i, ":")
+            # print(curNumCoordList)
+            # for j in range(0, len(curNumCoordList) - 1):
+            #     print("Current Cords: ",curNumCoordList[j])
+            #     if curNumCoordList[j] in targetCords: cordsFound +=1
+            #     startX, startY = targetCords[0]
+            #     startX1, startY1 = targetCords[1]
+            #     currentX, currentY = curNumCoordList[j]
+            #     nextX, nextY = curNumCoordList[j + 1]
+            #     #indexes are in order, if we jump more than 1 square then there must be a disconnect or doubleback
+            #     if isValid == False and (curNumCoordList[j] not in targetCords):
+            #         spaceToDelete.append(curNumCoordList[j])
+            #     elif (currentX + 1 == nextX and currentY == nextY) or \
+            #        (currentY + 1 == nextY and currentX == nextX) or \
+            #        (currentX - 1 == nextX and currentY == nextY) or \
+            #        (currentY - 1 == nextY and currentX == nextX):
+            #         continue
+            #     else:#number must not be connected
+            #         isValid = False
+            #         # if cordsFound != 2:
+            #         #     break
 
 
     #placeholder
