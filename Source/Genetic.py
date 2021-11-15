@@ -126,6 +126,7 @@ class Genetic():
     #Find the valid paths between numbers and return a count of how many are valid
     def __CountValidPaths(self, individual):
         connectedNumbers = 0
+        PathList = []
 
         for i in range(1, self.NumberofNumbers + 1):
             isValid = True
@@ -146,8 +147,9 @@ class Genetic():
 
             if (isValid):
                 connectedNumbers+=1
+                PathList.append(i)
 
-        return connectedNumbers
+        return (connectedNumbers, PathList)
 
     def CountStrayPath(self,array):
         strayCount = 0
@@ -184,7 +186,15 @@ class Genetic():
                 if adjacentSpace == 0:
                     strayCount += 1
 
-        return strayCount                   
+        return strayCount     
+
+    def RemoveUselessPath(self, array):
+        originalValid = self.__CountValidPaths()[0]
+        if originalValid == 0:
+            return
+
+            
+        
 
 
     #placeholder
@@ -196,7 +206,7 @@ class Genetic():
         weightOfConnectedness = 10
         totalSquares = self.gridSize*self.gridSize
         fitMax = (self.NumberofNumbers * weightOfConnectedness) + totalSquares
-        validPaths = self.__CountValidPaths(individual)
+        validPaths = self.__CountValidPaths(individual)[0]
         invalidPaths = self.NumberofNumbers - validPaths
         emptySquares = totalSquares - np.count_nonzero(individual)
         straySquares = self.CountStrayPath(individual)
