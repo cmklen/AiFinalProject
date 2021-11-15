@@ -8,7 +8,7 @@ import matplotlib.patheffects as PathEffects
 def DisplayGame(array, startArray, numbersNeeded):
     gridSize = len(array[0])
     Name = str(gridSize) + "x" + str(gridSize)
-    FileName = Name + "Graph.png"
+    FileName = "Output/" + Name + "Graph.png"
 
     fig = plt.figure(figsize=(8, 4))
 
