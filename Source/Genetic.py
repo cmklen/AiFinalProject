@@ -211,10 +211,10 @@ class Genetic():
 
             newChild1, newChild2  = selectedIndivs#self.Crossover(selectedIndivs, numberOfNumbers)
 
-            # if (np.random.random() < self.mutRate):
-            #     newChild1 = self.Mutate(newChild1, numberOfNumbers)
-            # if (np.random.random() < self.mutRate):
-            #     newChild2 = self.Mutate(newChild2, numberOfNumbers)
+            if (np.random.random() < self.mutRate):
+                newChild1 = self.Mutate(newChild1, numberOfNumbers)
+            if (np.random.random() < self.mutRate):
+                newChild2 = self.Mutate(newChild2, numberOfNumbers)
 
             newGeneration[Population].append(newChild1)
             newGeneration[Fitnesses].append(self.DetermineFitness(newChild1))
@@ -235,7 +235,51 @@ class Genetic():
 
     #Use a greedy algorithm to try and get a valid path
     def Mutate(self, individual, numberOfNumbers):
-        
+        gridCopy = self.grid
+        numberPath = random.randint(1, numberOfNumbers)
+        curNumCoordList = list(zip(np.where(np.array(self.grid) == numberPath)[0], np.where(np.array(self.grid) == numberPath)[1]))
+
+        #reset path for selected number
+        for i in range(0, self.gridSize):
+            for j in range(0, self.gridSize):
+                if individual[i][j] == numberPath:
+                    individual[i][j] = 0
+
+        individual[curNumCoordList[0][0]][curNumCoordList[0][1]] = numberPath
+        individual[curNumCoordList[1][0]][curNumCoordList[1][1]] = numberPath
+
+        #Create new random path for the number
+        indexes = []
+
+        #generate list of starting number locations
+        for j in range(1, self.NumberofNumbers + 1):
+            foundIndex = np.where(self.grid == j)
+            indexes.append(list(zip(foundIndex[0], foundIndex[1])))
+        #while guesses:
+            #pick random starting number, and build path from it
+            #currentNumber = guesses.pop()
+        startNumIndex = random.randint(0,1)
+        finishNumIndex = int(not startNumIndex) #lmao don't look at this cursed shit
+        curX, curY = indexes[numberPath - 1][startNumIndex]
+        finishX, finishY = indexes[numberPath - 1][finishNumIndex]
+
+        while True:
+            curX, curY = self.__FindRandomAdjacentPath(curX, curY, individual, finishX, finishY)
+
+            #stuck, delete partial path
+            if curX == -1 and curY == -1:
+                for i in range(0, self.gridSize):
+                    for j in range(0, self.gridSize):
+                        if individual[i][j] == numberPath and not (i == finishX and j == finishY) and not (i == indexes[numberPath - 1][startNumIndex][0] and j == indexes[numberPath - 1][startNumIndex][1]):
+                            individual[i][j] = 0
+                break
+            
+            #found finish, path is good
+            if curX == -2 and curY == -2:
+                break
+
+            individual[curX][curY] = numberPath
+
         return individual
 
     #placeholder
