@@ -101,7 +101,7 @@ class Genetic():
                     if curX == -1 and curY == -1:
                         for i in range(0, self.gridSize):
                             for j in range(0, self.gridSize):
-                                if newPopulation[i][j] == currentNumber and i != finishX and i != indexes[currentNumber - 1][startNumIndex][0] and j != finishY and indexes[currentNumber - 1][finishNumIndex][1]:
+                                if newPopulation[i][j] == currentNumber and not (i == finishX and j == finishY) and not (i == indexes[currentNumber - 1][startNumIndex][0] and j == indexes[currentNumber - 1][startNumIndex][1]):
                                     newPopulation[i][j] = 0
                         break
                     
@@ -116,7 +116,7 @@ class Genetic():
 
         return newGeneration
 
-    def __PrintGrid(self, gridToPrint):
+    def PrintGrid(self, gridToPrint):
         for i in range(0, self.gridSize):
             print(gridToPrint[i])
 
@@ -211,10 +211,10 @@ class Genetic():
 
             newChild1, newChild2  = selectedIndivs#self.Crossover(selectedIndivs, numberOfNumbers)
 
-            if (np.random.random() < self.mutRate):
-                newChild1 = self.Mutate(newChild1, numberOfNumbers)
-            if (np.random.random() < self.mutRate):
-                newChild2 = self.Mutate(newChild2, numberOfNumbers)
+            # if (np.random.random() < self.mutRate):
+            #     newChild1 = self.Mutate(newChild1, numberOfNumbers)
+            # if (np.random.random() < self.mutRate):
+            #     newChild2 = self.Mutate(newChild2, numberOfNumbers)
 
             newGeneration[Population].append(newChild1)
             newGeneration[Fitnesses].append(self.DetermineFitness(newChild1))
@@ -241,12 +241,6 @@ class Genetic():
     #placeholder
     def RunAlgorithm(self):
         currentGeneration = self.CreateInitialGeneration()
-
-        print("Final Gen:")
-        for i in range(0, self.popSize):
-            self.__PrintGrid(currentGeneration[Population][i])
-            print("Fitness:", currentGeneration[Fitnesses][i])
-            print("**************************************")
 
         #be careful here, this will not return a deep copy at the moment
         for i in range(0, self.cutoff):
