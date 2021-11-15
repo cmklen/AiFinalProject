@@ -93,15 +93,11 @@ class Genetic():
                 finishNumIndex = int(not startNumIndex) #lmao don't look at this cursed shit
                 curX, curY = indexes[currentNumber - 1][startNumIndex]
                 finishX, finishY = indexes[currentNumber - 1][finishNumIndex]
-                # print("cur num", currentNumber)
-                # print(indexes)
-                # print("x,y", x, y)
+
                 while True:
                     curX, curY = self.__FindRandomAdjacentPath(curX, curY, newPopulation, finishX, finishY)
 
                     if curX == -1 and curY == -1:
-                        print("new POP:")
-                        self.__PrintGrid(newPopulation)
                         break
 
                     newPopulation[curX][curY] = currentNumber
