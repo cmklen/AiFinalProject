@@ -38,9 +38,15 @@ class Genetic():
         #print() #TESTING, use this as breakpoint to check grid
 
     #Randomly guess next path from current location
-    def __FindRandomAdjacentPath(self, x, y, population):
+    def __FindRandomAdjacentPath(self, x, y, population, finishX, finishY):
         guesses = [1,2,3,4]
         np.random.shuffle(guesses)
+
+        if y + 1 == finishY and x == finishX or \
+           y == finishY and x + 1 == finishX or \
+           y == finishY and x - 1 == finishX or \
+           y - 1 == finishY and x == finishX:
+            return (-1, -1)
 
         while guesses:
             guess = guesses.pop()
@@ -64,14 +70,14 @@ class Genetic():
         return (-1, -1)
 
     #create random intial population
-    def CreateInitalGeneration(self):
+    def CreateInitialGeneration(self):
         newGeneration = [[],[]]
         
         for i in range(0, self.popSize):
             currentNumber = 1
             newPopulation = list(map(list, self.grid))
-            partialFinishedNums = []
-            finishedNums = []
+            guesses = [k for k in range(1, self.NumberofNumbers + 1)]
+            np.random.shuffle(guesses)
             indexes = []
 
             #generate list of starting number locations
@@ -80,39 +86,21 @@ class Genetic():
                 indexes.append(list(zip(foundIndex[0], foundIndex[1])))
 
             #fill the grid
-            while True:
-                if currentNumber == 0:
-                    currentNumber = 1
-                if currentNumber not in partialFinishedNums:
-                    x = indexes[currentNumber-1][0][0]
-                    y = indexes[currentNumber-1][0][1]
-                else: #grab the second number start location
-                    x = indexes[currentNumber-1][1][0]
-                    y = indexes[currentNumber-1][1][1]
+            while guesses:
+                #pick random starting number, and build path from it
+                currentNumber = guesses.pop()
+                startNumIndex = random.randint(0,1)
+                finishNumIndex = int(not startNumIndex) #lmao don't look at this cursed shit
+                curX, curY = indexes[currentNumber - 1][startNumIndex]
+                finishX, finishY = indexes[currentNumber - 1][finishNumIndex]
 
-                x, y = self.__FindRandomAdjacentPath(x, y, newPopulation)
-                
-                #no new path can be made
-                if x == -1 and y == -1:
-                    if currentNumber not in partialFinishedNums:
-                        partialFinishedNums.append(currentNumber)
-                        currentNumber = (currentNumber+1)%(self.NumberofNumbers+1)
-                    elif currentNumber in partialFinishedNums:
-                        if currentNumber not in finishedNums:
-                            finishedNums.append(currentNumber)
-                        if len(finishedNums) == self.NumberofNumbers:
-                            break
-                    currentNumber = (currentNumber+1)%(self.NumberofNumbers+1)
-                    continue
+                while True:
+                    curX, curY = self.__FindRandomAdjacentPath(curX, curY, newPopulation, finishX, finishY)
 
-                if currentNumber not in partialFinishedNums:
-                    indexes[currentNumber-1][0] = (x,y)
-                elif currentNumber in partialFinishedNums:
-                    indexes[currentNumber-1][1] = (x,y)
+                    if curX == -1 and curY == -1:
+                        break
 
-                newPopulation[x][y] = currentNumber
-
-                currentNumber = (currentNumber+1)%(self.NumberofNumbers+1)
+                    newPopulation[curX][curY] = currentNumber
 
             newGeneration[Population].append(newPopulation)
             newGeneration[Fitnesses].append(self.DetermineFitness(newPopulation))
@@ -473,7 +461,7 @@ class Genetic():
 
     #placeholder
     def RunAlgorithm(self):
-        currentGeneration = self.CreateInitalGeneration()
+        currentGeneration = self.CreateInitialGeneration()
 
         # print("Final Gen:")
         # for i in range(0, self.popSize):
@@ -492,7 +480,7 @@ class Genetic():
         print("Finished Running!")
         return currentGeneration
 
-    #placeholder
+    #Return the number of numbers
     def GetNumberOfNumbers(self):
         return self.NumberofNumbers
 
