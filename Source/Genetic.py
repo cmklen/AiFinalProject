@@ -208,6 +208,7 @@ class Genetic():
 
         print(startAndFinish)
 
+        spaceToDelete = []
         for i in range(1, self.NumberofNumbers + 1):
             isValid = True
             targetCords = startAndFinish[i-1]
@@ -220,11 +221,13 @@ class Genetic():
             for j in range(0, len(curNumCoordList) - 1):
                 print("Current Cords: ",curNumCoordList[j])
                 if curNumCoordList[j] in targetCords: cordsFound +=1
-                startX, startY = targetCords[1]
+                startX, startY = targetCords[0]
                 currentX, currentY = curNumCoordList[j]
                 nextX, nextY = curNumCoordList[j + 1]
                 #indexes are in order, if we jump more than 1 square then there must be a disconnect or doubleback
-                if (currentX + 1 == nextX and currentY == nextY) or \
+                if isValid == False:
+                    spaceToDelete.append(curNumCoordList[j])
+                elif (currentX + 1 == nextX and currentY == nextY) or \
                    (currentY + 1 == nextY and currentX == nextX) or \
                    (currentX - 1 == nextX and currentY == nextY) or \
                    (currentY - 1 == nextY and currentX == nextX):
@@ -233,17 +236,20 @@ class Genetic():
                    (startY + 1 == nextY and startX == nextX) or \
                    (startX - 1 == nextX and startY == nextY) or \
                    (startY - 1 == nextY and startX == nextX) or \
-                    (startY - 1 == nextY and startX == nextX):
+                    (startY == nextY and startX == nextX):
                     continue
                 else:#number must not be connected
                     isValid = False
-                    break
+                    if cordsFound != 2:
+                        break
             if cordsFound == 2: isValid = True
             if (isValid):
                 connectedNumbers+=1
                 PathList.append(i)
 
             print("Number of Connections: ",connectedNumbers)
+            print("places to delete: ")
+            print(spaceToDelete)
 
 
             
