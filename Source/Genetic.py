@@ -46,7 +46,7 @@ class Genetic():
            y == finishY and x + 1 == finishX or \
            y == finishY and x - 1 == finishX or \
            y - 1 == finishY and x == finishX:
-            return (-1, -1)
+            return (-2, -2)
 
         while guesses:
             guess = guesses.pop()
@@ -97,7 +97,16 @@ class Genetic():
                 while True:
                     curX, curY = self.__FindRandomAdjacentPath(curX, curY, newPopulation, finishX, finishY)
 
+                    #stuck, delete partial path
                     if curX == -1 and curY == -1:
+                        for i in range(0, self.gridSize):
+                            for j in range(0, self.gridSize):
+                                if newPopulation[i][j] == currentNumber and i != finishX and i != indexes[currentNumber - 1][startNumIndex][0] and j != finishY and indexes[currentNumber - 1][finishNumIndex][1]:
+                                    newPopulation[i][j] = 0
+                        break
+                    
+                    #found finish, path is good
+                    if curX == -2 and curY == -2:
                         break
 
                     newPopulation[curX][curY] = currentNumber
