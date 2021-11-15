@@ -230,7 +230,8 @@ class Genetic():
         parent1 = selectedIndivs[0]
         parent2 = selectedIndivs[1]
 
-        self.__CountValidPaths()
+        P1Paths = self.__CountValidPaths(parent1)[1]
+        P2Paths = self.__CountValidPaths(parent2)[1]
 
 
         child1 = parent1
