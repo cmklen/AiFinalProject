@@ -6,7 +6,7 @@ import Genetic as gen
 import os
 import GUI as gui
 
-coolGuy = gen.Genetic(mutRate=.014, mutType="Random", popSize=150, crossType="Crossy", cutoff=500, gridSize=7)
+coolGuy = gen.Genetic(mutRate=.014, mutType="Random", popSize=150, crossType="Crossy", cutoff=100, gridSize=7)
 
 
 #Get directory that the test files are in
@@ -16,6 +16,8 @@ coolGuy.PopulateGrid(TestPath, "7x7.txt")
 
 
 finalGen = coolGuy.RunAlgorithm()
-print("Number of Pokie dots: ",coolGuy.CountStrayPath(finalGen[0][0]))
 
+print(coolGuy.grid)
+print("Path Selected: ")
+coolGuy.RemoveUselessPath(finalGen[0][0],coolGuy.grid)
 gui.DisplayGame(finalGen[0][0], coolGuy.grid, coolGuy.GetNumberOfNumbers())

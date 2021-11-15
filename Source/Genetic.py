@@ -188,10 +188,63 @@ class Genetic():
 
         return strayCount     
 
-    def RemoveUselessPath(self, array):
-        originalValid = self.__CountValidPaths()[0]
-        if originalValid == 0:
-            return
+    def RemoveUselessPath(self, individual, originalArray):
+
+
+
+
+
+        startAndFinish = []
+        connectedNumbers = 0
+        PathList = []
+
+        for num in range (1, self.NumberofNumbers + 1):
+            currentCords = []
+            for i in range(self.gridSize):
+                for j in range(self.gridSize):
+                    if originalArray[i][j] == num:
+                        currentCords.append((i,j))
+            startAndFinish.append(currentCords)
+
+        print(startAndFinish)
+
+        for i in range(1, self.NumberofNumbers + 1):
+            isValid = True
+            targetCords = startAndFinish[i-1]
+            cordsFound = 0
+            #cursed lol, returns a list of all coordinates 9as tuples) of the given numer i
+            curNumCoordList = list(zip(np.where(np.array(individual) == i)[0], np.where(np.array(individual) == i)[1]))
+            print("----------------------")
+            print(i, ":")
+            print(curNumCoordList)
+            for j in range(0, len(curNumCoordList) - 1):
+                print("Current Cords: ",curNumCoordList[j])
+                if curNumCoordList[j] in targetCords: cordsFound +=1
+                startX, startY = targetCords[1]
+                currentX, currentY = curNumCoordList[j]
+                nextX, nextY = curNumCoordList[j + 1]
+                #indexes are in order, if we jump more than 1 square then there must be a disconnect or doubleback
+                if (currentX + 1 == nextX and currentY == nextY) or \
+                   (currentY + 1 == nextY and currentX == nextX) or \
+                   (currentX - 1 == nextX and currentY == nextY) or \
+                   (currentY - 1 == nextY and currentX == nextX):
+                    continue
+                elif (startX + 1 == nextX and startY == nextY) or \
+                   (startY + 1 == nextY and startX == nextX) or \
+                   (startX - 1 == nextX and startY == nextY) or \
+                   (startY - 1 == nextY and startX == nextX) or \
+                    (startY - 1 == nextY and startX == nextX):
+                    continue
+                else:#number must not be connected
+                    isValid = False
+                    break
+            if cordsFound == 2: isValid = True
+            if (isValid):
+                connectedNumbers+=1
+                PathList.append(i)
+
+            print("Number of Connections: ",connectedNumbers)
+
 
             
         
@@ -416,11 +469,11 @@ class Genetic():
     def RunAlgorithm(self):
         currentGeneration = self.CreateInitalGeneration()
 
-        print("Final Gen:")
-        for i in range(0, self.popSize):
-            self.__PrintGrid(currentGeneration[Population][i])
-            print("Fitness:", currentGeneration[Fitnesses][i])
-            print("**************************************")
+        # print("Final Gen:")
+        # for i in range(0, self.popSize):
+            # self.__PrintGrid(currentGeneration[Population][i])
+            # print("Fitness:", currentGeneration[Fitnesses][i])
+            # print("**************************************")
 
         #be careful here, this will not return a deep copy at the moment
         for i in range(0, self.cutoff):
