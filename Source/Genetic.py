@@ -200,7 +200,7 @@ class Genetic():
         for i in range(0, int(len(currentGeneration[Population])/2)):
             selectedIndivs = random.choices(currentGeneration[Population], currentGeneration[Fitnesses], k = 2)
 
-            newChild1, newChild2  = self.Crossover(selectedIndivs, numberOfNumbers)
+            newChild1, newChild2  = selectedIndivs#self.Crossover(selectedIndivs, numberOfNumbers)
 
             if (np.random.random() < self.mutRate):
                 newChild1 = self.Mutate(newChild1, numberOfNumbers)
@@ -219,176 +219,15 @@ class Genetic():
         parent1 = selectedIndivs[0]
         parent2 = selectedIndivs[1]
 
-        child1 = np.zeros((len(selectedIndivs[0]), len(selectedIndivs[0])))
-        child2 = np.zeros((len(selectedIndivs[0]), len(selectedIndivs[0])))
-        child1 = child1.tolist()
-        child2 = child2.tolist()
-
-        for i in range(0, len(selectedIndivs[0])):
-            for j in range(0, len(selectedIndivs[0][0])):
-                gene = random.choice(selectedIndivs)
-                attempts = 0
-                while(gene[i][j] == 0):
-                    gene = random.choice(selectedIndivs)
-                    attempts += 1
-                    if attempts >= 5:
-                        break
-                child1[i][j] = gene[i][j]
-
-        for i in range(0, len(selectedIndivs[0])):
-            for j in range(0, len(selectedIndivs[0][0])):
-                gene = random.choice(selectedIndivs)
-                attempts = 0
-                while(gene[i][j] == 0):
-                    gene = random.choice(selectedIndivs)
-                    attempts += 1
-                    if attempts >= 5:
-                        break
-                child2[i][j] = gene[i][j]
+        child1 = parent1
+        child2 = parent2
 
         return (child1, child2)
 
     #Use a greedy algorithm to try and get a valid path
     def Mutate(self, individual, numberOfNumbers):
-        numberPath = random.randint(1, numberOfNumbers)
-        #Find spaces where the nodes to connect are
-        curNumCoordList = list(zip(np.where(np.array(self.grid) == numberPath)[0], np.where(np.array(self.grid) == numberPath)[1]))
-
-        gridCopy = copy.deepcopy(self.grid)
-
-        for i in range(0,len(individual)):
-            for j in range(0,len(individual)):
-                if individual[i][j] == numberPath:
-                    gridCopy[i][j] = numberPath
-
-        gridCopy, check = self.createPath(numberPath, curNumCoordList, gridCopy)
-
-        if check:
-            #Copy path into individual
-            for i in range(0,len(individual)):
-                for j in range(0,len(individual)):
-                    """ if individual[i][j] == numberPath:
-                        individual[i][j] = 0 """
-                    if gridCopy[i][j] == numberPath:
-                        individual[i][j] = numberPath
-
+        
         return individual
-
-
-    def checkDirection(self, direction, curPosition, gridCopy, numberPath, visitedCoords):
-        #if direction is right
-        if direction == 0:
-            if(curPosition[1] + 1 < len(gridCopy)) and (gridCopy[curPosition[0]][curPosition[1]+1] == 0 or gridCopy[curPosition[0]][curPosition[1]+1] == numberPath):
-                gridCopy[curPosition[0]][curPosition[1]+1] = numberPath
-                curPosition = (curPosition[0], curPosition[1]+1)
-                if curPosition not in visitedCoords:
-                    visitedCoords.append(curPosition)
-                    return True, visitedCoords
-        #if direction is up
-        if direction == 1:
-            if(curPosition[0] - 1 >= 0) and (gridCopy[curPosition[0]-1][curPosition[1]] == 0 or gridCopy[curPosition[0]-1][curPosition[1]] == numberPath):
-                gridCopy[curPosition[0]-1][curPosition[1]] = numberPath
-                curPosition = (curPosition[0]-1, curPosition[1])
-                if curPosition not in visitedCoords:
-                    visitedCoords.append(curPosition)
-                    return True, visitedCoords
-        #if direction is left
-        if direction == 2:
-            if(curPosition[1] - 1 >= 0) and (gridCopy[curPosition[0]][curPosition[1]-1] == 0 or gridCopy[curPosition[0]][curPosition[1]-1] == numberPath):
-                gridCopy[curPosition[0]][curPosition[1]-1] = numberPath
-                curPosition = (curPosition[0], curPosition[1]-1)
-                if curPosition not in visitedCoords:
-                    visitedCoords.append(curPosition)
-                    return True, visitedCoords
-        #if direction is down
-        if direction == 3:
-            if(curPosition[0] + 1 < len(gridCopy)) and (gridCopy[curPosition[0]+1][curPosition[1]] == 0 or gridCopy[curPosition[0]+1][curPosition[1]] == numberPath):
-                gridCopy[curPosition[0]+1][curPosition[1]] = numberPath
-                curPosition = (curPosition[0]+1, curPosition[1])
-                if curPosition not in visitedCoords:
-                    visitedCoords.append(curPosition)
-                    return True, visitedCoords
-
-        return False, visitedCoords
-
-    def createPath(self, numberPath, curNumCordList, gridCopy):
-        startPosition = curNumCordList[0]
-        gridArray = np.array(gridCopy)
-        indices = np.where(gridArray==numberPath)
-        """ while(True):
-
-        startPosition = (random.choice(indices[0], random)) """
-        endPosition = curNumCordList[1]
-        curPosition = startPosition
-        attempts = 0
-        check = False
-
-        #0 = right, 1 = up, 2 = left, 4 = down
-        directions = [0,1,2,3]
-        visitedCoords = [startPosition]
-        while(True):
-            random.shuffle(directions)
-            choice = random.randint(1,4)
-            if attempts > 5:
-                break
-
-            #Check if the next move could move to the end state
-            #Check right
-            if(curPosition[1] + 1 < len(gridCopy)) and (curPosition[0] == endPosition[0] and curPosition[1]+1 == endPosition[1]):
-                check = True
-                break
-            #Check up
-            if(curPosition[0] - 1 >= 0) and (curPosition[0]-1 == endPosition[0] and curPosition[1] == endPosition[1]):
-                check = True
-                break
-            #Check left
-            if(curPosition[0] - 1 >= 0) and (curPosition[0]== endPosition[0] and curPosition[1]-1 == endPosition[1]):
-                check = True
-                break
-            #Check down
-            if(curPosition[0] + 1 < len(gridCopy)) and (curPosition[0]+1 == endPosition[0] and curPosition[1] == endPosition[1]):
-                check = True
-                break
-            #Check current position
-            if(curPosition[0] == endPosition[0]) and (curPosition[1] == endPosition[1]):
-                check = True
-                break
-            
-            loopCheck = False
-            for i in directions:
-                validDir, visitedCoords = self.checkDirection(i, curPosition, gridCopy, numberPath, visitedCoords)
-                if validDir:
-                    if i == 0:
-                        gridCopy[curPosition[0]][curPosition[1]+1] = numberPath
-                        curPosition = (curPosition[0], curPosition[1]+1)
-                        attempts = 0
-                        loopCheck = True
-                        break
-                    elif i == 1:
-                        gridCopy[curPosition[0]-1][curPosition[1]] = numberPath
-                        curPosition = (curPosition[0]-1, curPosition[1])
-                        attempts = 0
-                        loopCheck = True
-                        break
-                    elif i == 2:
-                        gridCopy[curPosition[0]][curPosition[1]-1] = numberPath
-                        curPosition = (curPosition[0], curPosition[1]-1)
-                        attempts = 0
-                        loopCheck = True
-                        break
-                    else:
-                        gridCopy[curPosition[0]+1][curPosition[1]] = numberPath
-                        curPosition = (curPosition[0]+1, curPosition[1])
-                        attempts = 0
-                        loopCheck = True
-                        break
-
-                if not loopCheck:
-                    break
-            attempts += 1
-            
-            #print()
-        return gridCopy, check
 
     #placeholder
     def RunAlgorithm(self):
@@ -403,10 +242,8 @@ class Genetic():
         #be careful here, this will not return a deep copy at the moment
         for i in range(0, self.cutoff):
             currentGeneration = self.Reproduce(currentGeneration, self.NumberofNumbers)
-
-            #Print out progress every so many generations
-            if(i % 50) == 0:
-                print(f'Generation {i}')
+            print(f'Generation {i}, Best Fit',  max(currentGeneration[Fitnesses]), 'Worst:', min(currentGeneration[Fitnesses]) )
+                
 
         print("Finished Running!")
         return currentGeneration

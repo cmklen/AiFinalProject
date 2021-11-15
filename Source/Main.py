@@ -17,5 +17,4 @@ coolGuy.PopulateGrid(TestPath, "7x7.txt")
 
 finalGen = coolGuy.RunAlgorithm()
 print("Number of Pokie dots: ", coolGuy.CountStrayPath(finalGen[0][0]))
-
-gui.DisplayGame(finalGen[0][0], coolGuy.grid, coolGuy.GetNumberOfNumbers())
+gui.DisplayGame(finalGen[0][finalGen[1].index(max(finalGen[1]))], coolGuy.grid, coolGuy.GetNumberOfNumbers())
