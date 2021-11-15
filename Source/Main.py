@@ -6,7 +6,7 @@ import Genetic as gen
 import os
 import GUI as gui
 
-coolGuy = gen.Genetic(mutRate=.010, mutType="Random", popSize=10, crossType="Crossy", cutoff=200, gridSize=7)
+coolGuy = gen.Genetic(mutRate=.010, mutType="Random", popSize=150, crossType="Crossy", cutoff=200, gridSize=7)
 
 
 #Get directory that the test files are in
