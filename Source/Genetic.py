@@ -126,7 +126,7 @@ class Genetic():
 
         for i in range(1, self.NumberofNumbers + 1):
             isValid = True
-            #cursed lol, returns a list of all coordinates 9as tuples) of the given numer i
+            #cursed lol, returns a list of all coordinates (as tuples) of the given numer i
             curNumCoordList = list(zip(np.where(np.array(individual) == i)[0], np.where(np.array(individual) == i)[1]))
             for j in range(0, len(curNumCoordList) - 1):
                 currentX, currentY = curNumCoordList[j]
@@ -211,10 +211,10 @@ class Genetic():
 
             newChild1, newChild2  = selectedIndivs#self.Crossover(selectedIndivs, numberOfNumbers)
 
-            # if (np.random.random() < self.mutRate):
-            #     newChild1 = self.Mutate(newChild1, numberOfNumbers)
-            # if (np.random.random() < self.mutRate):
-            #     newChild2 = self.Mutate(newChild2, numberOfNumbers)
+            if (np.random.random() < self.mutRate):
+                newChild1 = self.Mutate(newChild1, numberOfNumbers)
+            if (np.random.random() < self.mutRate):
+                newChild2 = self.Mutate(newChild2, numberOfNumbers)
 
             newGeneration[Population].append(newChild1)
             newGeneration[Fitnesses].append(self.DetermineFitness(newChild1))
@@ -242,12 +242,11 @@ class Genetic():
     def RunAlgorithm(self):
         currentGeneration = self.CreateInitialGeneration()
 
-        #be careful here, this will not return a deep copy at the moment
-        for i in range(0, self.cutoff):
-            currentGeneration = self.Reproduce(currentGeneration, self.NumberofNumbers)
-            print(f'Generation {i}, Best Fit',  max(currentGeneration[Fitnesses]), 'Worst:', min(currentGeneration[Fitnesses]) )
+        # #be careful here, this will not return a deep copy at the moment
+        # for i in range(0, self.cutoff):
+        #     currentGeneration = self.Reproduce(currentGeneration, self.NumberofNumbers)
+        #     print(f'Generation {i}, Best Fit',  max(currentGeneration[Fitnesses]), 'Worst:', min(currentGeneration[Fitnesses]) )
                 
-
         print("Finished Running!")
         return currentGeneration
 
