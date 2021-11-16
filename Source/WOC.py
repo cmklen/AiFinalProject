@@ -25,19 +25,13 @@ def BuildAggregateSolution(wisemen, gridSize, numberOfNumbers):
 def TranslateAggregateSolutionIntoFinalGraph(agregateSolution, grid, gridSize, numberOfNumbers):
     finalGrid = np.zeros((gridSize, gridSize), dtype=int)
 
-
-    # print(agregateSolution)
-    # print(agregateSolution[0][0]) 
-    # print(max(agregateSolution[0][0])) 
-    # print(agregateSolution[0][0].index(max(agregateSolution[0][0]))) 
     for i in range(0, gridSize):
         for j in range(0, gridSize):
             if grid[i][j] != 0:
                 finalGrid[i][j] = grid[i][j]
             else:
-                if max(agregateSolution[i][j]) >= 5:
+                if max(agregateSolution[i][j]) >= 8: #only pick very agreeed upon solutions
                     finalGrid[i][j] = agregateSolution[i][j].index(max(agregateSolution[i][j]))
-
     return finalGrid
 
 def WisdomOfCrowds(wisemen, grid, gridSize, numberOfNumbers):

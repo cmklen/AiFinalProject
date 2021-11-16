@@ -4,8 +4,6 @@
 import numpy as np
 import re
 import random
-from itertools import product, starmap
-import copy
 
 Population = 0
 Fitnesses = 1
@@ -144,47 +142,9 @@ class Genetic():
             if (isValid):
                 connectedNumbers+=1
 
-        return connectedNumbers
+        return connectedNumbers             
 
-    def CountStrayPath(self,array):
-        strayCount = 0
-
-        for i in range(self.gridSize):
-            for j in range(self.gridSize):
-                currentNum = array[i][j]
-                adjacentSpace = 0
-
-                #examine space above currentNum
-                try:
-                    if array[i][j-1] == currentNum: adjacentSpace +=1
-                except: 
-                    pass
-
-                #examine space to the left of currentNum
-                try:
-                    if array[i-1][j] == currentNum: adjacentSpace +=1
-                except: 
-                    pass
-
-                #examine space to the right of currentNum
-                try:
-                    if array[i+1][j] == currentNum: adjacentSpace +=1
-                except: 
-                    pass
-
-                #examine space below currentNum
-                try:
-                    if array[i][j+1] == currentNum: adjacentSpace +=1
-                except: 
-                    pass
-
-                if adjacentSpace == 0:
-                    strayCount += 1
-
-        return strayCount                   
-
-
-    #placeholder
+    #determine the fitness of an individual 
     def DetermineFitness(self, individual):
         #Fitness will be maximized, the maximal value will be according to the following formula
         #fitMax = #ofNumsToConnect * weight + totalSquares
@@ -199,7 +159,6 @@ class Genetic():
         return fitMax - (invalidPaths * weightOfConnectedness)
 
     #creates a new generation from the passed one using crossover and mutation
-    #be careful here, this will not return a deep copy at the moment
     #Create 2 children for every two children selected
     def Reproduce(self, currentGeneration, numberOfNumbers):
         newGeneration = [[] for i in range(2)]
@@ -207,7 +166,7 @@ class Genetic():
         for i in range(0, int(len(currentGeneration[Population])/2)):
             selectedIndivs = random.choices(currentGeneration[Population], currentGeneration[Fitnesses], k = 2)
 
-            newChild1, newChild2  = selectedIndivs#self.Crossover(selectedIndivs, numberOfNumbers)
+            newChild1, newChild2  = selectedIndivs #self.Crossover(selectedIndivs, numberOfNumbers)
 
             if (np.random.random() < self.mutRate):
                 newChild1 = self.Mutate(newChild1, numberOfNumbers)
@@ -223,17 +182,38 @@ class Genetic():
 
     #Create 2 new children from the 2 selected parents
     def Crossover(self, selectedIndivs, numberOfNumbers):
-        parent1 = selectedIndivs[0]
-        parent2 = selectedIndivs[1]
 
-        child1 = parent1
-        child2 = parent2
+        child1 = np.zeros((len(selectedIndivs[0]), len(selectedIndivs[0])))
+        child2 = np.zeros((len(selectedIndivs[0]), len(selectedIndivs[0])))
+        child1 = child1.tolist()
+        child2 = child2.tolist()
+
+        for i in range(0, len(selectedIndivs[0])):
+            for j in range(0, len(selectedIndivs[0][0])):
+                gene = random.choice(selectedIndivs)
+                attempts = 0
+                while(gene[i][j] == 0):
+                    gene = random.choice(selectedIndivs)
+                    attempts += 1
+                    if attempts >= 5:
+                        break
+                child1[i][j] = gene[i][j]
+
+        for i in range(0, len(selectedIndivs[0])):
+            for j in range(0, len(selectedIndivs[0][0])):
+                gene = random.choice(selectedIndivs)
+                attempts = 0
+                while(gene[i][j] == 0):
+                    gene = random.choice(selectedIndivs)
+                    attempts += 1
+                    if attempts >= 5:
+                        break
+                child2[i][j] = gene[i][j]
 
         return (child1, child2)
 
     #Use a greedy algorithm to try and get a valid path
     def Mutate(self, individual, numberOfNumbers):
-        gridCopy = self.grid
         numberPath = random.randint(1, numberOfNumbers)
         curNumCoordList = list(zip(np.where(np.array(self.grid) == numberPath)[0], np.where(np.array(self.grid) == numberPath)[1]))
 
@@ -257,7 +237,7 @@ class Genetic():
             #pick random starting number, and build path from it
             #currentNumber = guesses.pop()
         startNumIndex = random.randint(0,1)
-        finishNumIndex = int(not startNumIndex) #lmao don't look at this cursed shit
+        finishNumIndex = int(not startNumIndex)
         curX, curY = indexes[numberPath - 1][startNumIndex]
         finishX, finishY = indexes[numberPath - 1][finishNumIndex]
 
@@ -280,11 +260,10 @@ class Genetic():
 
         return individual
 
-    #placeholder
+    #Run the algorithm
     def RunAlgorithm(self):
         currentGeneration = self.CreateInitialGeneration()
 
-        #be careful here, this will not return a deep copy at the moment
         for i in range(0, self.cutoff):
             currentGeneration = self.Reproduce(currentGeneration, self.NumberofNumbers)
             print(f'Generation {i}, Best Fit',  max(currentGeneration[Fitnesses]), 'Worst:', min(currentGeneration[Fitnesses]) )

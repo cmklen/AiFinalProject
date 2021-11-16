@@ -3,11 +3,8 @@
 # Glue code for all numberlink files
 
 import Genetic as gen
-import os
 import GUI as gui
 import WOC as woc
-
-
 
 #Get directory that the test files are in
 TestPath = "TestData/"
@@ -31,14 +28,8 @@ for i in range(0, numberOfDatasets):
         bestIndexToPop = resultingGeneration[1].index(max(resultingGeneration[1]))
         bestInd = resultingGeneration[0].pop(bestIndexToPop)
         wisemen.append(bestInd)
-        # gui.DisplayGame(bestInd, numberlinkTests[i][0].grid, numberlinkTests[i][0].GetNumberOfNumbers(), "test", True)
     
     print("Solution for ", str(testDataSizes[i]) + "x" + str(testDataSizes[i]) + ".txt")
     wocSolution = woc.WisdomOfCrowds(wisemen, numberlinkTests[i][0].grid, numberlinkTests[i][0].gridSize, numberlinkTests[i][0].GetNumberOfNumbers())
     wocSolutions.append(wocSolution)
     gui.DisplayGame(wocSolution, numberlinkTests[i][0].grid, numberlinkTests[i][0].GetNumberOfNumbers(), "woc")
-
-# print(numberlinkTests[0][0].grid)
-# print(wocSolutions[0])
-# print(numberlinkTests[1][0].grid)
-# print(numberlinkTests[2][0].grid)
