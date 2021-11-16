@@ -195,16 +195,14 @@ class Genetic():
         fitMax = (self.NumberofNumbers * weightOfConnectedness) + totalSquares
         validPaths = self.__CountValidPaths(individual)
         invalidPaths = self.NumberofNumbers - validPaths
-        emptySquares = totalSquares - np.count_nonzero(individual)
-        straySquares = self.CountStrayPath(individual)
 
-        return fitMax - (invalidPaths * weightOfConnectedness) - emptySquares - straySquares
+        return fitMax - (invalidPaths * weightOfConnectedness)
 
     #creates a new generation from the passed one using crossover and mutation
     #be careful here, this will not return a deep copy at the moment
     #Create 2 children for every two children selected
     def Reproduce(self, currentGeneration, numberOfNumbers):
-        newGeneration = [[], []]
+        newGeneration = [[] for i in range(2)]
 
         for i in range(0, int(len(currentGeneration[Population])/2)):
             selectedIndivs = random.choices(currentGeneration[Population], currentGeneration[Fitnesses], k = 2)
@@ -286,10 +284,10 @@ class Genetic():
     def RunAlgorithm(self):
         currentGeneration = self.CreateInitialGeneration()
 
-        # #be careful here, this will not return a deep copy at the moment
-        # for i in range(0, self.cutoff):
-        #     currentGeneration = self.Reproduce(currentGeneration, self.NumberofNumbers)
-        #     print(f'Generation {i}, Best Fit',  max(currentGeneration[Fitnesses]), 'Worst:', min(currentGeneration[Fitnesses]) )
+        #be careful here, this will not return a deep copy at the moment
+        for i in range(0, self.cutoff):
+            currentGeneration = self.Reproduce(currentGeneration, self.NumberofNumbers)
+            print(f'Generation {i}, Best Fit',  max(currentGeneration[Fitnesses]), 'Worst:', min(currentGeneration[Fitnesses]) )
                 
         print("Finished Running!")
         return currentGeneration

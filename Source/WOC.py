@@ -35,7 +35,7 @@ def TranslateAggregateSolutionIntoFinalGraph(agregateSolution, grid, gridSize, n
             if grid[i][j] != 0:
                 finalGrid[i][j] = grid[i][j]
             else:
-                if max(agregateSolution[i][j]):
+                if max(agregateSolution[i][j]) >= 5:
                     finalGrid[i][j] = agregateSolution[i][j].index(max(agregateSolution[i][j]))
 
     return finalGrid

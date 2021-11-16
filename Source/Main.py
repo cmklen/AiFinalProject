@@ -17,7 +17,7 @@ testDataSizes = [7, 9, 11, 13, 15]
 numberOfDatasets = 5
 
 for i in range(0, numberOfDatasets):
-    numberlinkTests.append((gen.Genetic(mutRate=.010, mutType="Random", popSize=10000, crossType="Crossy", cutoff=200, gridSize=testDataSizes[i]), testDataSizes[i]))
+    numberlinkTests.append((gen.Genetic(mutRate=.010, mutType="Random", popSize=1000, crossType="Crossy", cutoff=200, gridSize=testDataSizes[i]), testDataSizes[i]))
     numberlinkTests[i][0].PopulateGrid(TestPath, str(testDataSizes[i]) + "x" + str(testDataSizes[i]) + ".txt")
 
 wocSolutions = []
@@ -32,8 +32,6 @@ for i in range(0, numberOfDatasets):
         bestInd = resultingGeneration[0].pop(bestIndexToPop)
         wisemen.append(bestInd)
         # gui.DisplayGame(bestInd, numberlinkTests[i][0].grid, numberlinkTests[i][0].GetNumberOfNumbers(), "test", True)
-
-    # print(wisemen)
     
     print("Solution for ", str(testDataSizes[i]) + "x" + str(testDataSizes[i]) + ".txt")
     wocSolution = woc.WisdomOfCrowds(wisemen, numberlinkTests[i][0].grid, numberlinkTests[i][0].gridSize, numberlinkTests[i][0].GetNumberOfNumbers())
