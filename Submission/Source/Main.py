@@ -14,7 +14,7 @@ testDataSizes = [7]#, 9, 11, 13, 15]
 numberOfDatasets = 1 #5
 
 for i in range(0, numberOfDatasets):
-    numberlinkTests.append((gen.Genetic(mutRate=.010, mutType="Random", popSize=200, crossType="Crossy", cutoff=500, gridSize=testDataSizes[i]), testDataSizes[i]))
+    numberlinkTests.append((gen.Genetic(mutRate=.010, mutType="Random", popSize=200, crossType="Crossy", cutoff=500, gridSize=testDataSizes[i], numberOfNumbers=5), testDataSizes[i]))
     numberlinkTests[i][0].PopulateGrid(TestPath, str(testDataSizes[i]) + "x" + str(testDataSizes[i]) + ".txt")
 
 # wocSolutions = []
