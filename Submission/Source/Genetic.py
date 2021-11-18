@@ -76,7 +76,7 @@ class Genetic():
     def __calculateSquareUniqueness(self, num):
         countOfNums = self.__countNumbersInSquare(num)
         #weight assosciated with number of numbers
-        connectednessFactors = [10, 2, 0, -4, -25] #hardcoded
+        connectednessFactors = [6, 3, 0, -3, -6] #hardcoded
         return connectednessFactors[countOfNums - 1]
 
     #3need to fix, this isn't working for numbers < some amonut (2^4 ???)
@@ -243,53 +243,13 @@ class Genetic():
 
         print("best Fit from run:", runBestFit)
         print("bestInd\n", np.array(runBestInd))
-        self.ConvertGridToPrintableSoultion(runBestInd)
         return runBestInd
-    
-        # solutionGrid = [[2,2,2,4,4,4,4],
-        #                 [2,3,2,2,2,5,4],
-        #                 [2,3,3,3,1,5,4],
-        #                 [2,5,5,5,1,5,4],
-        #                 [2,5,1,1,1,5,4],
-        #                 [2,5,1,5,5,5,4],
-        #                 [2,5,5,5,4,4,4]]
-        # for i in range(0, 7):
-        #     for j in range(0, 7):
-        #         solutionGrid[i][j] = 2**(solutionGrid[i][j]-1)
-
-        # solutionGrid[2][4] = 32 | (1 << 0)
-        # solutionGrid[5][2] = 32 | (1 << 0)
-        # solutionGrid[6][0] = 32 | (1 << 1)
-        # solutionGrid[1][4] = 32 | (1 << 1)
-        # solutionGrid[1][1] = 32 | (1 << 2)
-        # solutionGrid[2][3] = 32 | (1 << 2)
-        # solutionGrid[0][3] = 32 | (1 << 3)
-        # solutionGrid[6][4] = 32 | (1 << 3)
-        # solutionGrid[3][3] = 32 | (1 << 4)
-        # solutionGrid[1][5] = 32 | (1 << 4)
-
-        # # print(np.array(solutionGrid)) 
-        # print("fit of sol:", self.DetermineFitness(solutionGrid))
-
-        # self.ConvertGridToPrintableSoultion(solutionGrid)
-        # print(np.array(solutionGrid))
-
-        # return solutionGrid
 
     #Return the number of numbers
     def GetNumberOfNumbers(self):
         return self.NumberofNumbers
 
-class WisdomOfCrowds():
-    def __findNumberIndexesInSquare(self, n):
-        nums = []
-        for i in range(0, self.NumberofNumbers):
-            if (1 << i) &  n:
-                nums.append(i)
-        list.sort(nums)
-        return nums
-
-    def buildAggregateSolution(self, wisemen, gridSize, numberOfNumbers):
+    def BuildAggregateSolution(self, wisemen, gridSize, numberOfNumbers):
 
         agregateSolution = []
         #create 3d array
@@ -308,3 +268,23 @@ class WisdomOfCrowds():
                         agregateSolution[i][j][numberIndexes[k]] += 1
 
         print(agregateSolution)
+        return agregateSolution
+
+    def TranslateAggregateSolutionIntoFinalGraph(self, agregateSolution, grid, gridSize, numberOfNumbers):
+        finalGrid = np.zeros((gridSize, gridSize), dtype=int)
+
+        for i in range(0, gridSize):
+            for j in range(0, gridSize):
+                if grid[i][j] != 0:
+                    finalGrid[i][j] = grid[i][j]
+                else:
+                    # if max(agregateSolution[i][j]) >= 8: #only pick very agreeed upon solutions
+                    finalGrid[i][j] = agregateSolution[i][j].index(max(agregateSolution[i][j])) + 1
+        return finalGrid
+
+    def WisdomOfCrowds(self, wisemen, grid, gridSize, numberOfNumbers):
+        agregateSolution = self.BuildAggregateSolution(wisemen, gridSize, numberOfNumbers)
+        solution = self.TranslateAggregateSolutionIntoFinalGraph(agregateSolution, grid, gridSize, numberOfNumbers)
+        self.ConvertGridToPrintableSoultion(solution)
+        print("Sol:\n",np.array(solution))
+        return solution
