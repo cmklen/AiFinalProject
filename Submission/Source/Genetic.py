@@ -3,6 +3,7 @@
 # Code for running a genetic algorithm on the numberlink problem
 import numpy as np
 import re
+import math
 import random
 
 Population = 0
@@ -26,7 +27,7 @@ class Genetic():
         self.numberMask = 32 #2^5
         staticNumbers = [(2**i | self.numberMask) for i in range(0, self.NumberofNumbers)] #create static numbers
         self.maxConnectedValues = self.numberMask - 1 
-        print("Static Numbers: ", staticNumbers)
+        # print("Static Numbers: ", staticNumbers)
         ##**************************************************
         fileName = testPath+fileName
 
@@ -34,29 +35,28 @@ class Genetic():
             data = f.readlines()
             for line in data:
                 lineList = re.split(':|,|\n', line)
-                print("placing ", lineList[0], "into", int(lineList[1])-1, int(lineList[2])-1)
+                # print("placing ", lineList[0], "into", int(lineList[1])-1, int(lineList[2])-1)
                 self.grid[int(lineList[1])-1][int(lineList[2])-1] = staticNumbers[int(lineList[0]) - 1]
 
-        print("Grid At Start: \n", self.grid)
+        # print("Grid At Start: \n", self.grid)
 
     #create random intial population
     def CreateInitialGeneration(self):
         newGeneration = [[],[]]
 
-        newGeneration[Population].append(np.zeros((self.gridSize, self.gridSize), dtype=int))
+        for n in range(0, self.popSize):
+            newGeneration[Population].append(np.zeros((self.gridSize, self.gridSize), dtype=int))
 
-        for i in range(0, self.gridSize):
-            for j in range(0, self.gridSize):
-                if ~((self.grid[i][j] & (1 << self.NumberofNumbers)) == self.numberMask): #check if location is a starting num
-                    newGeneration[Population][0][i][j] = random.randint(1, self.maxConnectedValues)
-                else:
-                    newGeneration[Population][0][i][j] = self.grid[i][j]
+            for i in range(0, self.gridSize):
+                for j in range(0, self.gridSize):
+                    if ~((self.grid[i][j] & (1 << self.NumberofNumbers)) == self.numberMask): #check if location is a starting num
+                        newGeneration[Population][n][i][j] = random.randint(1, self.maxConnectedValues)
+                    else:
+                        newGeneration[Population][n][i][j] = self.grid[i][j]
 
-        return newGeneration
+            newGeneration[Fitnesses].append(self.DetermineFitness(newGeneration[Population][n]))
 
-    def PrintGrid(self, gridToPrint):
-        for i in range(0, self.gridSize):
-            print(gridToPrint[i])             
+        return newGeneration           
 
     #takes number and counts the number of nubmers in that square
     def __countNumbersInSquare(self, n):
@@ -64,6 +64,10 @@ class Genetic():
         while (n): 
             count += n & 1
             n >>= 1
+
+        #protec
+        if count == 63:
+            count = 0
         return count
 
     def __calculateSquareUniqueness(self, num):
@@ -81,6 +85,10 @@ class Genetic():
         list.sort(nums)
         return nums
 
+    #checks if a static number matchs the given other number
+    def __checkIfStaticNumberMatch(self, numStatic, num):   
+        return (numStatic & ((1 << num) | (1 << self.NumberofNumbers) == numStatic))
+
     #scores the numbers of adjacent sqaures with the same number as a given sqaure (for each number in it)
     def __scoreConnectedSquares(self, individual, x, y):
 
@@ -91,27 +99,27 @@ class Genetic():
 
         for num in listOfNums:
             connectedCount = 0
-            #Right
+            #right
             if y + 1 < self.gridSize:
-                if individual[x][y+1] & ((1 << num) | (1 << self.NumberofNumbers)  == individual[x][y+1]):
+                if self.__checkIfStaticNumberMatch(individual[x][y+1], num):
                     totalScore += 9
                 elif individual[x][y+1] & (1 << num):
                     connectedCount += 1
             #left
             if y - 1 >= 0:
-                if individual[x][y-1] & ((1 << num) | (1 << self.NumberofNumbers) == individual[x][y-1]):
+                if self.__checkIfStaticNumberMatch(individual[x][y-1], num):
                     totalScore += 9
                 elif individual[x][y-1] & (1 << num):
                     connectedCount += 1
             #down
             if x + 1 < self.gridSize:
-                if individual[x+1][y] & ((1 << num) | (1 << self.NumberofNumbers) == individual[x+1][y]):
+                if self.__checkIfStaticNumberMatch(individual[x+1][y], num):
                     totalScore += 9
                 elif individual[x+1][y] & (1 << num):
                     connectedCount += 1
             #up
             if x - 1 >= 0:
-                if individual[x-1][y] & ((1 << num) | (1 << self.NumberofNumbers) == individual[x-1][y]):
+                if self.__checkIfStaticNumberMatch(individual[x-1][y], num):
                     totalScore += 9
                 elif individual[x-1][y] & (1 << num):
                     connectedCount += 1
@@ -128,40 +136,54 @@ class Genetic():
         # total  fit = sum of squares
         for i in range(0, self.gridSize):
             for j in range(0, self.gridSize):
-                squareUniqueness = self.__calculateSquareUniqueness(individual[i][j])
-                connectedSquares = self.__scoreConnectedSquares(individual, i, j)
-                totalFitness += (squareUniqueness +  connectedSquares)
+                if self.grid[i][j] == 0: #don't use starting grid in calculation
+                    squareUniqueness = self.__calculateSquareUniqueness(individual[i][j])
+                    connectedSquares = self.__scoreConnectedSquares(individual, i, j)
+                    totalFitness += (squareUniqueness +  connectedSquares)
         return totalFitness
 
     #creates a new generation from the passed one using crossover and mutation
     #Create 2 children for every two children selected
-    def Reproduce(self, currentGeneration, numberOfNumbers):
-        newGeneration = [[] for i in range(2)]
+    def Reproduce(self, currentGeneration):
+        newGeneration = list([[] for i in range(2)])
 
         for i in range(0, int(len(currentGeneration[Population])/2)):
             selectedIndivs = random.choices(currentGeneration[Population], currentGeneration[Fitnesses], k = 2)
 
-            newChild1, newChild2  = self.Crossover(selectedIndivs, numberOfNumbers)
+            newChild1, newChild2  = self.Crossover(selectedIndivs)
 
             if (np.random.random() < self.mutRate):
-                newChild1 = self.Mutate(newChild1, numberOfNumbers)
+                newChild1 = self.Mutate(newChild1)
             if (np.random.random() < self.mutRate):
-                newChild2 = self.Mutate(newChild2, numberOfNumbers)
+                newChild2 = self.Mutate(newChild2)
 
             newGeneration[Population].append(newChild1)
             newGeneration[Fitnesses].append(self.DetermineFitness(newChild1))
             newGeneration[Population].append(newChild2)
             newGeneration[Fitnesses].append(self.DetermineFitness(newChild2))
-
+            
         return newGeneration
 
     #Create 2 new children from the 2 selected parents
-    def Crossover(self, selectedIndivs, numberOfNumbers):
+    def Crossover(self, selectedIndivs):
 
-        return (1, 2)
+        return selectedIndivs
 
     #Use a greedy algorithm to try and get a valid path
-    def Mutate(self, individual, numberOfNumbers):
+    def Mutate(self, individual):
+        # print("Mutating!")
+        i = 0 
+        j = 0
+        aStaticNum = True
+        while(aStaticNum):
+            i = random.randint(0, self.gridSize - 1)
+            j = random.randint(0, self.gridSize - 1)
+            #make sure we don't replace a starting num
+            if self.grid[i][j] == 0:
+                # print("was: ", self.DetermineFitness(individual))
+                individual[i][j] ^= (1 << math.floor(random.randint(0, self.NumberofNumbers)))
+                # print("is: ", self.DetermineFitness(individual))
+                aStaticNum = False
 
         return individual
 
@@ -169,53 +191,12 @@ class Genetic():
     def RunAlgorithm(self):
         currentGeneration = self.CreateInitialGeneration()
 
-        print("Intial Pop First Ind: \n", currentGeneration[Population][0])
-        # for i in range(0, self.cutoff):
-        #     currentGeneration = self.Reproduce(currentGeneration, self.NumberofNumbers)
-        #     print(f'Generation {i}, Best Fit',  max(currentGeneration[Fitnesses]), 'Worst:', min(currentGeneration[Fitnesses]) )
-
-        # print("Counting bit in 13!", self.__countNumbersInSquare(13))
-        # print("Finding nums in 1!", self.__findNumberIndexesInSquare(1))
-
-        # testGrid = np.zeros((3,3), dtype=int)
-
-        # j= 1 
-        # k = 1
-        # testGrid[j][k] = 1
-        # testGrid[j-1][k] = 0
-        # testGrid[j+1][k] = 0
-        # testGrid[j][k-1] = 1
-        # testGrid[j][k+1] = 1
-
-        # # print("Connectedness score for (1,1)", self.__scoreConnectedSquares(testGrid, j, k))
-        # self.gridSize = 3        
-        # print("Test Grid\n", testGrid)
-        solutionGrid = [[2,2,2,4,4,4,4],
-                        [2,3,2,2,2,5,4],
-                        [2,3,3,3,1,5,4],
-                        [2,5,5,5,1,5,4],
-                        [2,5,1,1,1,5,4],
-                        [2,5,1,5,5,5,4],
-                        [2,5,5,5,4,4,4]]
-        for i in range(0, 7):
-            for j in range(0, 7):
-                solutionGrid[i][j] = 2**(solutionGrid[i][j]-1)
-
-        solutionGrid[2][4] = 32 | (1 << 0)
-        solutionGrid[5][2] = 32 | (1 << 0)
-        solutionGrid[6][0] = 32 | (1 << 1)
-        solutionGrid[1][4] = 32 | (1 << 1)
-        solutionGrid[1][1] = 32 | (1 << 2)
-        solutionGrid[2][3] = 32 | (1 << 2)
-        solutionGrid[0][3] = 32 | (1 << 3)
-        solutionGrid[6][4] = 32 | (1 << 3)
-        solutionGrid[3][3] = 32 | (1 << 4)
-        solutionGrid[1][5] = 32 | (1 << 4)
-
-        print(np.array(solutionGrid)) 
-        print("Fitness solution: ", self.DetermineFitness(solutionGrid))
-        print("Fitness pop: ", self.DetermineFitness(currentGeneration[Population][0]))
-        print("Finished Running!")
+        for i in range(0, self.cutoff):
+            print("Gen ", i, "| Fitness (best/avg):", max(currentGeneration[Fitnesses]), \
+                  "/", sum(currentGeneration[Fitnesses])/len(currentGeneration[Fitnesses]))
+            # oldGen = currentGeneration 
+            currentGeneration = self.Reproduce(currentGeneration)
+            # print(oldGen == currentGeneration)
         return currentGeneration
 
     #Return the number of numbers
