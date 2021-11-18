@@ -25,7 +25,7 @@ class Genetic():
         # READ THIS IN LATER FOR OTHER DATASETS BESIDES 7x7
         self.numberMask = 32 #2^5
         staticNumbers = [(2**i | self.numberMask) for i in range(0, self.NumberofNumbers)] #create static numbers
-        self.maxConnectedValues = 31 
+        self.maxConnectedValues = self.numberMask - 1 
         print("Static Numbers: ", staticNumbers)
         ##**************************************************
         fileName = testPath+fileName
@@ -70,18 +70,54 @@ class Genetic():
         countOfNums = self.__countNumbersInSquare(num)
         connectednessFactors = [4, 2, 0, -2, 4] #hardcoded
         return connectednessFactors[countOfNums]
-        
-    def __findNumbersInSquare(self, n):
+
+    #3need to fix, this isn't working for numbers < some amonut (2^4 ???)
+    def __findNumberIndexesInSquare(self, n):
         nums = []
-        curNum = self.NumberofNumbers - 1 #-1 as we start from 0 here
-        while (n): 
-            if(n & 1):
-                nums.append(curNum)
-            n >>= 1
-            curNum-=1
+        for i in range(0, self.NumberofNumbers):
+            if (1 << i) &  n:
+                nums.append(i)
         list.sort(nums)
         return nums
 
+    #scores the numbers of adjacent sqaures with the same number as a given sqaure (for each number in it)
+    def __scoreConnectedSquares(self, individual, x, y):
+
+        listOfNums = self.__findNumberIndexesInSquare(individual[x][y])
+
+        connectedCountWeight = [0, 4, 3, 2, 1]
+        totalScore = 0
+
+        for num in listOfNums:
+            connectedCount = 0
+            #Right
+            if y + 1 < self.gridSize:
+                if individual[x][y+1] & ((1 << num) | (1 << self.NumberofNumbers)  == individual[x][y+1]):
+                    totalScore += 9
+                elif individual[x][y+1] & (1 << num):
+                    connectedCount += 1
+            #left
+            if y - 1 >= 0:
+                if individual[x][y-1] & ((1 << num) | (1 << self.NumberofNumbers) == individual[x][y-1]):
+                    totalScore += 9
+                elif individual[x][y-1] & (1 << num):
+                    connectedCount += 1
+            #down
+            if x + 1 < self.gridSize:
+                if individual[x+1][y] & ((1 << num) | (1 << self.NumberofNumbers) == individual[x+1][y]):
+                    totalScore += 9
+                elif individual[x+1][y] & (1 << num):
+                    connectedCount += 1
+            #up
+            if x - 1 >= 0:
+                if individual[x-1][y] & ((1 << num) | (1 << self.NumberofNumbers) == individual[x-1][y]):
+                    totalScore += 9
+                elif individual[x-1][y] & (1 << num):
+                    connectedCount += 1
+            
+            totalScore+=connectedCountWeight[connectedCount] 
+
+        return totalScore
 
     #determine the fitness of an individual 
     def DetermineFitness(self, individual):
@@ -133,7 +169,20 @@ class Genetic():
         #     print(f'Generation {i}, Best Fit',  max(currentGeneration[Fitnesses]), 'Worst:', min(currentGeneration[Fitnesses]) )
 
         print("Counting bit in 13!", self.__countNumbersInSquare(13))
-        print("Finding nums in 13!", self.__findNumbersInSquare(13))
+        print("Finding nums in 1!", self.__findNumberIndexesInSquare(1))
+
+        testGrid = np.zeros((3,3), dtype=int)
+
+        j= 1 
+        k = 1
+        testGrid[j][k] = 15
+        testGrid[j-1][k] = 31
+        testGrid[j+1][k] = 31
+        testGrid[j][k-1] = 31
+        testGrid[j][k+1] = 31
+
+        print("Test Grid\n", testGrid)
+        print("Connectedness score for (1,1)", self.__scoreConnectedSquares(testGrid, j, k))
                 
         print("Finished Running!")
         return currentGeneration
