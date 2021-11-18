@@ -61,19 +61,22 @@ class Genetic():
     #takes number and counts the number of nubmers in that square
     def __countNumbersInSquare(self, n):
         count = 0
+        
+        #protec
+        if n == 63:
+            return 1
+
         while (n): 
             count += n & 1
             n >>= 1
 
-        #protec
-        if count == 63:
-            count = 0
+        
         return count
 
     def __calculateSquareUniqueness(self, num):
         countOfNums = self.__countNumbersInSquare(num)
         #weight assosciated with number of numbers
-        connectednessFactors = [10, 2, 0, -2, -10] #hardcoded
+        connectednessFactors = [10, 2, 0, -4, -25] #hardcoded
         return connectednessFactors[countOfNums - 1]
 
     #3need to fix, this isn't working for numbers < some amonut (2^4 ???)
@@ -94,7 +97,7 @@ class Genetic():
 
         listOfNums = self.__findNumberIndexesInSquare(individual[x][y])
 
-        connectedCountWeight = [0, 3, 4, 2, 1] #a line has a sqaure on either side
+        connectedCountWeight = [0, 4, 3, 2, 1] #a line has a square on either side
         totalScore = 0
 
         for num in listOfNums:
@@ -148,9 +151,9 @@ class Genetic():
         newGeneration = list([[] for i in range(2)])
 
         for i in range(0, int(len(currentGeneration[Population])/2)):
-            selectedIndivs = random.choices(currentGeneration[Population], currentGeneration[Fitnesses], k = 2)
+            selectedIndivs = random.choices(currentGeneration[Population], weights=currentGeneration[Fitnesses], k = 2)
 
-            newChild1, newChild2  = self.Crossover(selectedIndivs)
+            newChild1, newChild2  = self.Crossover(selectedIndivs[0], selectedIndivs[1])
 
             if (np.random.random() < self.mutRate):
                 newChild1 = self.Mutate(newChild1)
@@ -165,13 +168,21 @@ class Genetic():
         return newGeneration
 
     #Create 2 new children from the 2 selected parents
-    def Crossover(self, selectedIndivs):
+    def Crossover(self, parent1, parent2):
+        child1 = [row[:] for row in parent1]
+        child2 = [row[:] for row in parent2]
 
-        return selectedIndivs
+        for i in range(0, self.gridSize):
+            for j in range(0, self.gridSize):
+                if self.__countNumbersInSquare(child1[i][j]) >= 3:
+                    child1[i][j] = parent1[i][j] | parent2[i][j]
+                if self.__countNumbersInSquare(child2[i][j]) >= 3:
+                    child2[i][j] = parent1[i][j] | parent2[i][j]
+
+        return (child1, child2)
 
     #Use a greedy algorithm to try and get a valid path
     def Mutate(self, individual):
-        # print("Mutating!")
         i = 0 
         j = 0
         aStaticNum = True
@@ -180,26 +191,120 @@ class Genetic():
             j = random.randint(0, self.gridSize - 1)
             #make sure we don't replace a starting num
             if self.grid[i][j] == 0:
-                # print("was: ", self.DetermineFitness(individual))
                 individual[i][j] ^= (1 << math.floor(random.randint(0, self.NumberofNumbers)))
-                # print("is: ", self.DetermineFitness(individual))
                 aStaticNum = False
 
         return individual
+
+    def ConvertGridToPrintableSoultion(self, grid):
+        
+        for i in range(0, self.gridSize):
+            for j in range(0, self.gridSize):
+                if grid[i][j] == 4:
+                    grid[i][j] = 3
+                if grid[i][j] == 8:
+                    grid[i][j] = 4
+                if grid[i][j] == 16:
+                    grid[i][j] = 5
+        for i in range(0, self.gridSize):
+            for j in range(0, self.gridSize):
+                if self.grid[i][j] == 33:
+                    self.grid[i][j] = 1
+                    grid[i][j] = 1
+                if self.grid[i][j] == 34:
+                    self.grid[i][j] = 2
+                    grid[i][j] = 2
+                if self.grid[i][j] == 36:
+                    self.grid[i][j] = 3 
+                    grid[i][j] = 3
+                if self.grid[i][j] == 40:
+                    self.grid[i][j] = 4
+                    grid[i][j] = 4
+                if self.grid[i][j] == 48:
+                    self.grid[i][j] = 5
+                    grid[i][j] = 5
+
 
     #Run the algorithm
     def RunAlgorithm(self):
         currentGeneration = self.CreateInitialGeneration()
 
+        runBestFit = 0
+        runBestInd = np.zeros((self.gridSize, self.gridSize), dtype=int)
+        # 562 max for fitness
         for i in range(0, self.cutoff):
-            print("Gen ", i, "| Fitness (best/avg):", max(currentGeneration[Fitnesses]), \
-                  "/", sum(currentGeneration[Fitnesses])/len(currentGeneration[Fitnesses]))
-            # oldGen = currentGeneration 
+            maxForGen = max(currentGeneration[Fitnesses])
+            avgForGen = sum(currentGeneration[Fitnesses])/len(currentGeneration[Fitnesses])
+            if maxForGen >= runBestFit: 
+                runBestFit = maxForGen
+                runBestInd = currentGeneration[Population][currentGeneration[Fitnesses].index(maxForGen)]
             currentGeneration = self.Reproduce(currentGeneration)
-            # print(oldGen == currentGeneration)
-        return currentGeneration
+            print("Gen ", i, "| Fitness (best/avg):", maxForGen, "/", avgForGen)
+
+        print("best Fit from run:", runBestFit)
+        print("bestInd\n", np.array(runBestInd))
+        self.ConvertGridToPrintableSoultion(runBestInd)
+        return runBestInd
+    
+        # solutionGrid = [[2,2,2,4,4,4,4],
+        #                 [2,3,2,2,2,5,4],
+        #                 [2,3,3,3,1,5,4],
+        #                 [2,5,5,5,1,5,4],
+        #                 [2,5,1,1,1,5,4],
+        #                 [2,5,1,5,5,5,4],
+        #                 [2,5,5,5,4,4,4]]
+        # for i in range(0, 7):
+        #     for j in range(0, 7):
+        #         solutionGrid[i][j] = 2**(solutionGrid[i][j]-1)
+
+        # solutionGrid[2][4] = 32 | (1 << 0)
+        # solutionGrid[5][2] = 32 | (1 << 0)
+        # solutionGrid[6][0] = 32 | (1 << 1)
+        # solutionGrid[1][4] = 32 | (1 << 1)
+        # solutionGrid[1][1] = 32 | (1 << 2)
+        # solutionGrid[2][3] = 32 | (1 << 2)
+        # solutionGrid[0][3] = 32 | (1 << 3)
+        # solutionGrid[6][4] = 32 | (1 << 3)
+        # solutionGrid[3][3] = 32 | (1 << 4)
+        # solutionGrid[1][5] = 32 | (1 << 4)
+
+        # # print(np.array(solutionGrid)) 
+        # print("fit of sol:", self.DetermineFitness(solutionGrid))
+
+        # self.ConvertGridToPrintableSoultion(solutionGrid)
+        # print(np.array(solutionGrid))
+
+        # return solutionGrid
 
     #Return the number of numbers
     def GetNumberOfNumbers(self):
         return self.NumberofNumbers
 
+class WisdomOfCrowds():
+    def __findNumberIndexesInSquare(self, n):
+        nums = []
+        for i in range(0, self.NumberofNumbers):
+            if (1 << i) &  n:
+                nums.append(i)
+        list.sort(nums)
+        return nums
+
+    def buildAggregateSolution(self, wisemen, gridSize, numberOfNumbers):
+
+        agregateSolution = []
+        #create 3d array
+        for i in range(0, gridSize):
+            agregateSolution.append([])
+            for j in range(0, gridSize):
+                agregateSolution[i].append([])
+                for k in range(0, numberOfNumbers):
+                    agregateSolution[i][j].append(0)
+
+        for wiseman in wisemen:
+            for i in range(0, gridSize):
+                for j in range(0, gridSize):
+                    numberIndexes = self.__findNumberIndexesInSquare(wiseman[i][j])
+                    for k in range(0, len(numberIndexes)):
+                        agregateSolution[i][j][numberIndexes[k]] += 1
+
+        print(agregateSolution)

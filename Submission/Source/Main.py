@@ -5,6 +5,7 @@
 import Genetic as gen
 import GUI as gui
 import WOC as woc
+import numpy as np
 
 #Get directory that the test files are in
 TestPath = "TestData/"
@@ -14,13 +15,18 @@ testDataSizes = [7]#, 9, 11, 13, 15]
 numberOfDatasets = 1 #5
 
 for i in range(0, numberOfDatasets):
-    numberlinkTests.append((gen.Genetic(mutRate=.010, mutType="Random", popSize=100, crossType="Crossy", cutoff=100, gridSize=testDataSizes[i], numberOfNumbers=5), testDataSizes[i]))
+    numberlinkTests.append((gen.Genetic(mutRate=.010, mutType="Random", popSize=200, crossType="Crossy", cutoff=100, gridSize=testDataSizes[i], numberOfNumbers=5), testDataSizes[i]))
     numberlinkTests[i][0].PopulateGrid(TestPath, str(testDataSizes[i]) + "x" + str(testDataSizes[i]) + ".txt")
 
 # wocSolutions = []
 for i in range(0, numberOfDatasets):
     wisemen = []
     resultingGeneration = numberlinkTests[i][0].RunAlgorithm()
+    # bestIndexToPop = resultingGeneration[1].index(max(resultingGeneration[1]))
+    # bestInd = resultingGeneration[0].pop(bestIndexToPop)
+    # numberlinkTests[i][0].ConvertGridToPrintableSoultion(bestInd)
+    
+    gui.DisplayGame(resultingGeneration, numberlinkTests[i][0].grid, 5, str(i), True)
     # bestIndexToPop = resultingGeneration[1].index(max(resultingGeneration[1]))
     # bestInd = resultingGeneration[0].pop(bestIndexToPop)
     # gui.DisplayGame(bestInd, numberlinkTests[i][0].grid, numberlinkTests[i][0].GetNumberOfNumbers(), str(i))
