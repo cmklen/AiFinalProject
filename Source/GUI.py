@@ -37,17 +37,19 @@ def DisplayGame(array, startArray, numbersNeeded, suffix, show=False):
     if show:
         plt.show()
 
-def PlotGenerations(genOverTimeList, name):
-    #hard coded for now, will change eventually
-    gens = []
-    for i in range(0, 1000):
-        gens.append(i)
-    
+    plt.close()
+
+def PlotGenerations(maxOverTime, avgOverTime, name):
+
+
+    # for i in range(0, len(avgOverTime, maxOverTime)):
+    fig, ax = plt.subplots()
+    ax.plot(maxOverTime)
+    ax.plot(avgOverTime)
+
+    plt.legend(labels=["Max", "Averages"])
     plt.xlabel("Generations")
     plt.ylabel("Fitness")
-    # plt.yscale("log")
-    for i in range(0, len(genOverTimeList)):
-        plt.plot(genOverTimeList[i])
 
-    plt.savefig("../Output/" + name + ".png")
+    plt.savefig("Output/" + name + ".png")
     plt.close()

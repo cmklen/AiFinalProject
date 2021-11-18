@@ -196,35 +196,6 @@ class Genetic():
 
         return individual
 
-    def ConvertGridToPrintableSoultion(self, grid):
-        
-        for i in range(0, self.gridSize):
-            for j in range(0, self.gridSize):
-                if grid[i][j] == 4:
-                    grid[i][j] = 3
-                if grid[i][j] == 8:
-                    grid[i][j] = 4
-                if grid[i][j] == 16:
-                    grid[i][j] = 5
-        for i in range(0, self.gridSize):
-            for j in range(0, self.gridSize):
-                if self.grid[i][j] == 33:
-                    self.grid[i][j] = 1
-                    grid[i][j] = 1
-                if self.grid[i][j] == 34:
-                    self.grid[i][j] = 2
-                    grid[i][j] = 2
-                if self.grid[i][j] == 36:
-                    self.grid[i][j] = 3 
-                    grid[i][j] = 3
-                if self.grid[i][j] == 40:
-                    self.grid[i][j] = 4
-                    grid[i][j] = 4
-                if self.grid[i][j] == 48:
-                    self.grid[i][j] = 5
-                    grid[i][j] = 5
-
-
     #Run the algorithm
     def RunAlgorithm(self):
         currentGeneration = self.CreateInitialGeneration()
@@ -233,12 +204,12 @@ class Genetic():
         runBestInd = np.zeros((self.gridSize, self.gridSize), dtype=int)
         maxes= []
         averages = []
-        # 562 max for fitness
+        # # 527 max for fitness
         for i in range(0, self.cutoff):
             maxForGen = max(currentGeneration[Fitnesses])
             avgForGen = sum(currentGeneration[Fitnesses])/len(currentGeneration[Fitnesses])
             maxes.append(maxForGen)
-            averages.append(averages)
+            averages.append(avgForGen)
             if maxForGen >= runBestFit: 
                 runBestFit = maxForGen
                 runBestInd = currentGeneration[Population][currentGeneration[Fitnesses].index(maxForGen)]
@@ -247,6 +218,7 @@ class Genetic():
 
         print("best Fit from run:", runBestFit)
         print("bestInd\n", np.array(runBestInd))
+
         return (runBestInd, maxes, averages)
 
     #Return the number of numbers
@@ -274,21 +246,35 @@ class Genetic():
         print(agregateSolution)
         return agregateSolution
 
-    def TranslateAggregateSolutionIntoFinalGraph(self, agregateSolution, grid, gridSize, numberOfNumbers):
+    def TranslateAggregateSolutionIntoFinalGraph(self, agregateSolution, gridSize):
         finalGrid = np.zeros((gridSize, gridSize), dtype=int)
 
         for i in range(0, gridSize):
             for j in range(0, gridSize):
-                if grid[i][j] != 0:
-                    finalGrid[i][j] = grid[i][j]
+                if self.grid[i][j] != 0:
+                    if self.grid[i][j] == 33:
+                        self.grid[i][j] = 1
+                        finalGrid[i][j] = 1
+                    if self.grid[i][j] == 34:
+                        self.grid[i][j] = 2
+                        finalGrid[i][j] = 2
+                    if self.grid[i][j] == 36:
+                        self.grid[i][j] = 3 
+                        finalGrid[i][j] = 3
+                    if self.grid[i][j] == 40:
+                        self.grid[i][j] = 4
+                        finalGrid[i][j] = 4
+                    if self.grid[i][j] == 48:
+                        self.grid[i][j] = 5
+                        finalGrid[i][j] = 5
+                    finalGrid[i][j] = self.grid[i][j]
                 else:
-                    # if max(agregateSolution[i][j]) >= 8: #only pick very agreeed upon solutions
-                    finalGrid[i][j] = agregateSolution[i][j].index(max(agregateSolution[i][j])) + 1
+                    finalGrid[i][j] = (agregateSolution[i][j].index(max(agregateSolution[i][j])) + 1)
+     
         return finalGrid
 
-    def WisdomOfCrowds(self, wisemen, grid, gridSize, numberOfNumbers):
+    def WisdomOfCrowds(self, wisemen, gridSize, numberOfNumbers):
         agregateSolution = self.BuildAggregateSolution(wisemen, gridSize, numberOfNumbers)
-        solution = self.TranslateAggregateSolutionIntoFinalGraph(agregateSolution, grid, gridSize, numberOfNumbers)
-        self.ConvertGridToPrintableSoultion(solution)
+        solution = self.TranslateAggregateSolutionIntoFinalGraph(agregateSolution, gridSize)
         print("Sol:\n",np.array(solution))
         return solution
