@@ -68,8 +68,9 @@ class Genetic():
 
     def __calculateSquareUniqueness(self, num):
         countOfNums = self.__countNumbersInSquare(num)
-        connectednessFactors = [4, 2, 0, -2, 4] #hardcoded
-        return connectednessFactors[countOfNums]
+        #weight assosciated with number of numbers
+        connectednessFactors = [10, 2, 0, -2, -10] #hardcoded
+        return connectednessFactors[countOfNums - 1]
 
     #3need to fix, this isn't working for numbers < some amonut (2^4 ???)
     def __findNumberIndexesInSquare(self, n):
@@ -85,7 +86,7 @@ class Genetic():
 
         listOfNums = self.__findNumberIndexesInSquare(individual[x][y])
 
-        connectedCountWeight = [0, 4, 3, 2, 1]
+        connectedCountWeight = [0, 3, 4, 2, 1] #a line has a sqaure on either side
         totalScore = 0
 
         for num in listOfNums:
@@ -121,11 +122,16 @@ class Genetic():
 
     #determine the fitness of an individual 
     def DetermineFitness(self, individual):
-        #determine the fitness of an individual as a single number
-        num = individual[0][0]
-        #fitness = SquareUniqueness + ConnectedSquares
-        squareUniqueness = self.__calculateSquareUniqueness(num)
-        return 0
+        totalFitness = 0
+        # num = individual[0][0]
+        # fitness/square = SquareUniqueness + ConnectedSquares
+        # total  fit = sum of squares
+        for i in range(0, self.gridSize):
+            for j in range(0, self.gridSize):
+                squareUniqueness = self.__calculateSquareUniqueness(individual[i][j])
+                connectedSquares = self.__scoreConnectedSquares(individual, i, j)
+                totalFitness += (squareUniqueness +  connectedSquares)
+        return totalFitness
 
     #creates a new generation from the passed one using crossover and mutation
     #Create 2 children for every two children selected
@@ -168,22 +174,47 @@ class Genetic():
         #     currentGeneration = self.Reproduce(currentGeneration, self.NumberofNumbers)
         #     print(f'Generation {i}, Best Fit',  max(currentGeneration[Fitnesses]), 'Worst:', min(currentGeneration[Fitnesses]) )
 
-        print("Counting bit in 13!", self.__countNumbersInSquare(13))
-        print("Finding nums in 1!", self.__findNumberIndexesInSquare(1))
+        # print("Counting bit in 13!", self.__countNumbersInSquare(13))
+        # print("Finding nums in 1!", self.__findNumberIndexesInSquare(1))
 
-        testGrid = np.zeros((3,3), dtype=int)
+        # testGrid = np.zeros((3,3), dtype=int)
 
-        j= 1 
-        k = 1
-        testGrid[j][k] = 15
-        testGrid[j-1][k] = 31
-        testGrid[j+1][k] = 31
-        testGrid[j][k-1] = 31
-        testGrid[j][k+1] = 31
+        # j= 1 
+        # k = 1
+        # testGrid[j][k] = 1
+        # testGrid[j-1][k] = 0
+        # testGrid[j+1][k] = 0
+        # testGrid[j][k-1] = 1
+        # testGrid[j][k+1] = 1
 
-        print("Test Grid\n", testGrid)
-        print("Connectedness score for (1,1)", self.__scoreConnectedSquares(testGrid, j, k))
-                
+        # # print("Connectedness score for (1,1)", self.__scoreConnectedSquares(testGrid, j, k))
+        # self.gridSize = 3        
+        # print("Test Grid\n", testGrid)
+        solutionGrid = [[2,2,2,4,4,4,4],
+                        [2,3,2,2,2,5,4],
+                        [2,3,3,3,1,5,4],
+                        [2,5,5,5,1,5,4],
+                        [2,5,1,1,1,5,4],
+                        [2,5,1,5,5,5,4],
+                        [2,5,5,5,4,4,4]]
+        for i in range(0, 7):
+            for j in range(0, 7):
+                solutionGrid[i][j] = 2**(solutionGrid[i][j]-1)
+
+        solutionGrid[2][4] = 32 | (1 << 0)
+        solutionGrid[5][2] = 32 | (1 << 0)
+        solutionGrid[6][0] = 32 | (1 << 1)
+        solutionGrid[1][4] = 32 | (1 << 1)
+        solutionGrid[1][1] = 32 | (1 << 2)
+        solutionGrid[2][3] = 32 | (1 << 2)
+        solutionGrid[0][3] = 32 | (1 << 3)
+        solutionGrid[6][4] = 32 | (1 << 3)
+        solutionGrid[3][3] = 32 | (1 << 4)
+        solutionGrid[1][5] = 32 | (1 << 4)
+
+        print(np.array(solutionGrid)) 
+        print("Fitness solution: ", self.DetermineFitness(solutionGrid))
+        print("Fitness pop: ", self.DetermineFitness(currentGeneration[Population][0]))
         print("Finished Running!")
         return currentGeneration
 
