@@ -5,25 +5,31 @@
 import Genetic as gen
 import GUI as gui
 import WOC as woc
-import numpy as np
 
 #Get directory that the test files are in
 TestPath = "TestData/"
 
 numberlinkTests= []
-testDataSizes = [7]#, 9, 11, 13, 15]
-numberOfRuns = 20 #5
+testDataSizes = [7, 9, 11, 13, 15]
+numberOfDatasets = 5
 
-for i in range(0, numberOfRuns):
-    numberlinkTests.append((gen.Genetic(mutRate=.015, mutType="Random", popSize=200, crossType="Crossy", cutoff=100, gridSize=7, numberOfNumbers=5), 7))
-    numberlinkTests[i][0].PopulateGrid(TestPath, str(7) + "x" + str(7) + ".txt")
+for i in range(0, numberOfDatasets):
+    numberlinkTests.append((gen.Genetic(mutRate=.010, mutType="Random", popSize=1000, crossType="Crossy", cutoff=200, gridSize=testDataSizes[i]), testDataSizes[i]))
+    numberlinkTests[i][0].PopulateGrid(TestPath, str(testDataSizes[i]) + "x" + str(testDataSizes[i]) + ".txt")
 
-# wocSolutions = []
-wisemen = []
-for i in range(0, numberOfRuns):
-    bestOfRun = numberlinkTests[i][0].RunAlgorithm()
-    wisemen.append(bestOfRun)
-
-finalSolution = numberlinkTests[i][0].WisdomOfCrowds(wisemen,  numberlinkTests[i][0].grid,  numberlinkTests[i][0].gridSize, 5)
-gui.DisplayGame(finalSolution, numberlinkTests[i][0].grid, 5, str(i), True)
-
+wocSolutions = []
+for i in range(0, numberOfDatasets):
+    wisemen = []
+    resultingGeneration = numberlinkTests[i][0].RunAlgorithm()
+    bestIndexToPop = resultingGeneration[1].index(max(resultingGeneration[1]))
+    bestInd = resultingGeneration[0].pop(bestIndexToPop)
+    gui.DisplayGame(bestInd, numberlinkTests[i][0].grid, numberlinkTests[i][0].GetNumberOfNumbers(), str(i))
+    for j in range(0, 10):
+        bestIndexToPop = resultingGeneration[1].index(max(resultingGeneration[1]))
+        bestInd = resultingGeneration[0].pop(bestIndexToPop)
+        wisemen.append(bestInd)
+    
+    print("Solution for ", str(testDataSizes[i]) + "x" + str(testDataSizes[i]) + ".txt")
+    wocSolution = woc.WisdomOfCrowds(wisemen, numberlinkTests[i][0].grid, numberlinkTests[i][0].gridSize, numberlinkTests[i][0].GetNumberOfNumbers())
+    wocSolutions.append(wocSolution)
+    gui.DisplayGame(wocSolution, numberlinkTests[i][0].grid, numberlinkTests[i][0].GetNumberOfNumbers(), "woc")
