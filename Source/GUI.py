@@ -36,3 +36,18 @@ def DisplayGame(array, startArray, numbersNeeded, suffix, show=False):
     plt.savefig(FileName)
     if show:
         plt.show()
+
+def PlotGenerations(genOverTimeList, name):
+    #hard coded for now, will change eventually
+    gens = []
+    for i in range(0, 1000):
+        gens.append(i)
+    
+    plt.xlabel("Generations")
+    plt.ylabel("Fitness")
+    # plt.yscale("log")
+    for i in range(0, len(genOverTimeList)):
+        plt.plot(genOverTimeList[i])
+
+    plt.savefig("../Output/" + name + ".png")
+    plt.close()
