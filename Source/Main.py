@@ -11,10 +11,10 @@ TestPath = "TestData/"
 
 numberlinkTests= []
 testDataSizes = [7]#, 9, 11, 13, 15]
-numberOfRuns = 20 #5
+numberOfRuns = 10 #5
 
 for i in range(0, numberOfRuns):
-    numberlinkTests.append((gen.Genetic(mutRate=.015, mutType="Random", popSize=250, crossType="Crossy", cutoff=500, gridSize=7, numberOfNumbers=5), 7))
+    numberlinkTests.append((gen.Genetic(mutRate=.01, mutType="Random", popSize=300, crossType="Crossy", cutoff=500, gridSize=7, numberOfNumbers=5), 7))
     numberlinkTests[i][0].PopulateGrid(TestPath, str(7) + "x" + str(7) + ".txt")
 
 # wocSolutions = []

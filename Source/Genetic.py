@@ -27,8 +27,7 @@ class Genetic():
         self.numberMask = 32 #2^5
         staticNumbers = [(2**i | self.numberMask) for i in range(0, self.NumberofNumbers)] #create static numbers
         self.maxConnectedValues = self.numberMask - 1 
-        # print("Static Numbers: ", staticNumbers)
-        ##**************************************************
+
         fileName = testPath+fileName
 
         with open(fileName, "r") as f:
@@ -70,13 +69,12 @@ class Genetic():
             count += n & 1
             n >>= 1
 
-        
         return count
 
     def __calculateSquareUniqueness(self, num):
         countOfNums = self.__countNumbersInSquare(num)
         #weight assosciated with number of numbers
-        connectednessFactors = [10, 8, 0, -8, -10] #hardcoded
+        connectednessFactors = [6, 3, 0, -3, -6] #hardcoded
         return connectednessFactors[countOfNums - 1]
 
     #3need to fix, this isn't working for numbers < some amonut (2^4 ???)
@@ -97,7 +95,7 @@ class Genetic():
 
         listOfNums = self.__findNumberIndexesInSquare(individual[x][y])
 
-        connectedCountWeight = [0, 4, 3, 2, 1] #a line has a square on either side
+        connectedCountWeight = [0, 3, 4, 2, 1] #a line has a square on either side
         totalScore = 0
 
         for num in listOfNums:
@@ -105,25 +103,25 @@ class Genetic():
             #right
             if y + 1 < self.gridSize:
                 if self.__checkIfStaticNumberMatch(individual[x][y+1], num):
-                    totalScore += 9
+                    totalScore += 12
                 elif individual[x][y+1] & (1 << num):
                     connectedCount += 1
             #left
             if y - 1 >= 0:
                 if self.__checkIfStaticNumberMatch(individual[x][y-1], num):
-                    totalScore += 9
+                    totalScore += 12
                 elif individual[x][y-1] & (1 << num):
                     connectedCount += 1
             #down
             if x + 1 < self.gridSize:
                 if self.__checkIfStaticNumberMatch(individual[x+1][y], num):
-                    totalScore += 9
+                    totalScore += 12
                 elif individual[x+1][y] & (1 << num):
                     connectedCount += 1
             #up
             if x - 1 >= 0:
                 if self.__checkIfStaticNumberMatch(individual[x-1][y], num):
-                    totalScore += 9
+                    totalScore += 12
                 elif individual[x-1][y] & (1 << num):
                     connectedCount += 1
             
@@ -151,9 +149,10 @@ class Genetic():
         newGeneration = list([[] for i in range(2)])
 
         for i in range(0, int(len(currentGeneration[Population])/2)):
-            selectedIndivs = random.choices(currentGeneration[Population], weights=currentGeneration[Fitnesses], k = 2)
+            selectedParent1 = currentGeneration[Population][currentGeneration[Fitnesses].index(random.choices(currentGeneration[Fitnesses], weights=currentGeneration[Fitnesses])[0])]
+            selectedParent2 = currentGeneration[Population][currentGeneration[Fitnesses].index(random.choices(currentGeneration[Fitnesses], weights=currentGeneration[Fitnesses])[0])]
 
-            newChild1, newChild2  = self.Crossover(selectedIndivs[0], selectedIndivs[1])
+            newChild1, newChild2  = self.Crossover(selectedParent1, selectedParent2)
 
             if (np.random.random() < self.mutRate):
                 newChild1 = self.Mutate(newChild1)
@@ -175,9 +174,9 @@ class Genetic():
         for i in range(0, self.gridSize):
             for j in range(0, self.gridSize):
                 if self.__countNumbersInSquare(child1[i][j]) >= 3:
-                    child1[i][j] = parent1[i][j] #| parent2[i][j]
+                    child1[i][j] = parent1[i][j] | parent2[i][j]
                 if self.__countNumbersInSquare(child2[i][j]) >= 3:
-                    child2[i][j] = parent1[i][j] #| parent2[i][j]
+                    child2[i][j] = parent1[i][j] | parent2[i][j]
 
         return (child1, child2)
 
@@ -204,20 +203,24 @@ class Genetic():
         runBestInd = np.zeros((self.gridSize, self.gridSize), dtype=int)
         maxes= []
         averages = []
+        maxForGen = 0
+        avgForGen = 0
         # # 527 max for fitness
         for i in range(0, self.cutoff):
-            maxForGen = max(currentGeneration[Fitnesses])
-            avgForGen = sum(currentGeneration[Fitnesses])/len(currentGeneration[Fitnesses])
-            maxes.append(maxForGen)
-            averages.append(avgForGen)
-            if maxForGen >= runBestFit: 
-                runBestFit = maxForGen
-                runBestInd = currentGeneration[Population][currentGeneration[Fitnesses].index(maxForGen)]
             currentGeneration = self.Reproduce(currentGeneration)
             print("Gen ", i, "| Fitness (best/avg):", maxForGen, "/", avgForGen)
 
-        print("best Fit from run:", runBestFit)
-        print("bestInd\n", np.array(runBestInd))
+            maxForGen = max(currentGeneration[Fitnesses])
+            avgForGen = sum(currentGeneration[Fitnesses])/len(currentGeneration[Fitnesses])
+
+            if maxForGen >= runBestFit:
+               runBestFit = maxForGen
+               runBestInd = currentGeneration[Population][currentGeneration[Fitnesses].index(maxForGen)]
+            maxes.append(maxForGen)
+            averages.append(avgForGen)
+
+        # print("best Fit from run:", runBestFit)
+        # print("best Ind\n", np.array(runBestInd))
 
         return (runBestInd, maxes, averages)
 
