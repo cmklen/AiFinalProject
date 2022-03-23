@@ -3,260 +3,195 @@
 # Code for running a genetic algorithm on the numberlink problem
 import numpy as np
 import re
+import math
 import random
 
 Population = 0
 Fitnesses = 1
 
 class Genetic():
-    def __init__(self, mutRate, mutType, popSize, crossType, cutoff, gridSize):
+    def __init__(self, mutRate, mutType, popSize, crossType, cutoff, gridSize, numberOfNumbers):
         self.mutRate = mutRate
         self.mutType = mutType
         self.popSize = popSize
         self.crossType = crossType
         self.cutoff = cutoff
         self.gridSize = gridSize
+        self.NumberofNumbers = numberOfNumbers
         self.grid = np.zeros((gridSize, gridSize), dtype=int)
 
     # read in the locations of the starting numbers 
     def PopulateGrid(self, testPath, fileName):
+
+        # READ THIS IN LATER FOR OTHER DATASETS BESIDES 7x7
+        self.numberMask = 32 #2^5
+        staticNumbers = [(2**i | self.numberMask) for i in range(0, self.NumberofNumbers)] #create static numbers
+        self.maxConnectedValues = self.numberMask - 1 
+
         fileName = testPath+fileName
-        numberToPlace = 1
-        count = 1
+
         with open(fileName, "r") as f:
             data = f.readlines()
             for line in data:
                 lineList = re.split(':|,|\n', line)
-                self.grid[int(lineList[1])-1][int(lineList[2])-1] = numberToPlace
-                if (count % 2) == 0:
-                    numberToPlace += 1
-                count += 1
+                # print("placing ", lineList[0], "into", int(lineList[1])-1, int(lineList[2])-1)
+                self.grid[int(lineList[1])-1][int(lineList[2])-1] = staticNumbers[int(lineList[0]) - 1]
 
-        self.NumberofNumbers = numberToPlace - 1
-        #print() #TESTING, use this as breakpoint to check grid
-
-    #Randomly guess next path from current location
-    def __FindRandomAdjacentPath(self, x, y, population, finishX, finishY):
-        guesses = [1,2,3,4]
-        np.random.shuffle(guesses)
-
-        if y + 1 == finishY and x == finishX or \
-           y == finishY and x + 1 == finishX or \
-           y == finishY and x - 1 == finishX or \
-           y - 1 == finishY and x == finishX:
-            return (-2, -2)
-
-        while guesses:
-            guess = guesses.pop()
-            if guess == 1:
-                if y + 1 < self.gridSize:
-                    if population[x][y+1] == 0:
-                        return (x, y +1)
-            if guess == 2:
-                if x + 1 < self.gridSize:
-                    if population[x+1][y] == 0:
-                        return (x+1, y)
-            if guess == 3:
-                if x - 1 >= 0:
-                    if population[x-1][y] == 0:
-                        return (x-1, y)
-            if guess == 4:
-                if y - 1 >= 0:
-                    if population[x][y-1] == 0:
-                        return (x, y-1)
-
-        return (-1, -1)
+        # print("Grid At Start: \n", self.grid)
 
     #create random intial population
     def CreateInitialGeneration(self):
         newGeneration = [[],[]]
+
+        for n in range(0, self.popSize):
+            newGeneration[Population].append(np.zeros((self.gridSize, self.gridSize), dtype=int))
+
+            for i in range(0, self.gridSize):
+                for j in range(0, self.gridSize):
+                    if ~((self.grid[i][j] & (1 << self.NumberofNumbers)) == self.numberMask): #check if location is a starting num
+                        newGeneration[Population][n][i][j] = random.randint(1, self.maxConnectedValues)
+                    else:
+                        newGeneration[Population][n][i][j] = self.grid[i][j]
+
+            newGeneration[Fitnesses].append(self.DetermineFitness(newGeneration[Population][n]))
+
+        return newGeneration           
+
+    #takes number and counts the number of nubmers in that square
+    def __countNumbersInSquare(self, n):
+        count = 0
         
-        for i in range(0, self.popSize):
-            currentNumber = 1
-            newPopulation = list(map(list, self.grid))
-            guesses = [k for k in range(1, self.NumberofNumbers + 1)]
-            np.random.shuffle(guesses)
-            indexes = []
+        #protec
+        if n == 63:
+            return 1
 
-            #generate list of starting number locations
-            for j in range(1, self.NumberofNumbers + 1):
-                foundIndex = np.where(self.grid == j)
-                indexes.append(list(zip(foundIndex[0], foundIndex[1])))
+        while (n): 
+            count += n & 1
+            n >>= 1
 
-            #fill the grid
-            while guesses:
-                #pick random starting number, and build path from it
-                currentNumber = guesses.pop()
-                startNumIndex = random.randint(0,1)
-                finishNumIndex = int(not startNumIndex) #lmao don't look at this cursed shit
-                curX, curY = indexes[currentNumber - 1][startNumIndex]
-                finishX, finishY = indexes[currentNumber - 1][finishNumIndex]
+        return count
 
-                while True:
-                    curX, curY = self.__FindRandomAdjacentPath(curX, curY, newPopulation, finishX, finishY)
+    def __calculateSquareUniqueness(self, num):
+        countOfNums = self.__countNumbersInSquare(num)
+        #weight assosciated with number of numbers
+        connectednessFactors = [6, 3, 0, -3, -6] #hardcoded
+        return connectednessFactors[countOfNums - 1]
 
-                    #stuck, delete partial path
-                    if curX == -1 and curY == -1:
-                        for i in range(0, self.gridSize):
-                            for j in range(0, self.gridSize):
-                                if newPopulation[i][j] == currentNumber and not (i == finishX and j == finishY) and not (i == indexes[currentNumber - 1][startNumIndex][0] and j == indexes[currentNumber - 1][startNumIndex][1]):
-                                    newPopulation[i][j] = 0
-                        break
-                    
-                    #found finish, path is good
-                    if curX == -2 and curY == -2:
-                        break
+    #3need to fix, this isn't working for numbers < some amonut (2^4 ???)
+    def __findNumberIndexesInSquare(self, n):
+        nums = []
+        for i in range(0, self.NumberofNumbers):
+            if (1 << i) &  n:
+                nums.append(i)
+        list.sort(nums)
+        return nums
 
-                    newPopulation[curX][curY] = currentNumber
+    #checks if a static number matchs the given other number
+    def __checkIfStaticNumberMatch(self, numStatic, num):   
+        return (numStatic & ((1 << num) | (1 << self.NumberofNumbers) == numStatic))
 
-            newGeneration[Population].append(newPopulation)
-            newGeneration[Fitnesses].append(self.DetermineFitness(newPopulation))
+    #scores the numbers of adjacent sqaures with the same number as a given sqaure (for each number in it)
+    def __scoreConnectedSquares(self, individual, x, y):
 
-        return newGeneration
+        listOfNums = self.__findNumberIndexesInSquare(individual[x][y])
 
-    def PrintGrid(self, gridToPrint):
-        for i in range(0, self.gridSize):
-            print(gridToPrint[i])
+        connectedCountWeight = [0, 3, 4, 2, 1] #a line has a square on either side
+        totalScore = 0
 
-    #Find the valid paths between numbers and return a count of how many are valid
-    def __CountValidPaths(self, individual):
-        connectedNumbers = 0
+        for num in listOfNums:
+            connectedCount = 0
+            #right
+            if y + 1 < self.gridSize:
+                if self.__checkIfStaticNumberMatch(individual[x][y+1], num):
+                    totalScore += 12
+                elif individual[x][y+1] & (1 << num):
+                    connectedCount += 1
+            #left
+            if y - 1 >= 0:
+                if self.__checkIfStaticNumberMatch(individual[x][y-1], num):
+                    totalScore += 12
+                elif individual[x][y-1] & (1 << num):
+                    connectedCount += 1
+            #down
+            if x + 1 < self.gridSize:
+                if self.__checkIfStaticNumberMatch(individual[x+1][y], num):
+                    totalScore += 12
+                elif individual[x+1][y] & (1 << num):
+                    connectedCount += 1
+            #up
+            if x - 1 >= 0:
+                if self.__checkIfStaticNumberMatch(individual[x-1][y], num):
+                    totalScore += 12
+                elif individual[x-1][y] & (1 << num):
+                    connectedCount += 1
+            
+            totalScore+=connectedCountWeight[connectedCount] 
 
-        for i in range(1, self.NumberofNumbers + 1):
-            isValid = True
-            #cursed lol, returns a list of all coordinates (as tuples) of the given numer i
-            curNumCoordList = list(zip(np.where(np.array(individual) == i)[0], np.where(np.array(individual) == i)[1]))
-            for j in range(0, len(curNumCoordList) - 1):
-                currentX, currentY = curNumCoordList[j]
-                nextX, nextY = curNumCoordList[j + 1]
-                #indexes are in order, if we jump more than 1 square then there must be a disconnect or doubleback
-                if (currentX + 1 == nextX and currentY == nextY) or \
-                   (currentY + 1 == nextY and currentX == nextX) or \
-                   (currentX - 1 == nextX and currentY == nextY) or \
-                   (currentY - 1 == nextY and currentX == nextX):
-                    continue
-                else:#number must not be connected
-                    isValid = False
-                    break
-
-            if (isValid):
-                connectedNumbers+=1
-
-        return connectedNumbers             
+        return totalScore
 
     #determine the fitness of an individual 
     def DetermineFitness(self, individual):
-        #Fitness will be maximized, the maximal value will be according to the following formula
-        #fitMax = #ofNumsToConnect * weight + totalSquares
-        #The formula to calculate fitness will be as follows:
-        #fit = fitMax - #ofUnconnectedPairs * weight - #ofEmptySquares
-        weightOfConnectedness = 10
-        totalSquares = self.gridSize*self.gridSize
-        fitMax = (self.NumberofNumbers * weightOfConnectedness) + totalSquares
-        validPaths = self.__CountValidPaths(individual)
-        invalidPaths = self.NumberofNumbers - validPaths
-
-        return fitMax - (invalidPaths * weightOfConnectedness)
+        totalFitness = 0
+        # num = individual[0][0]
+        # fitness/square = SquareUniqueness + ConnectedSquares
+        # total  fit = sum of squares
+        for i in range(0, self.gridSize):
+            for j in range(0, self.gridSize):
+                if self.grid[i][j] == 0: #don't use starting grid in calculation
+                    squareUniqueness = self.__calculateSquareUniqueness(individual[i][j])
+                    connectedSquares = self.__scoreConnectedSquares(individual, i, j)
+                    totalFitness += (squareUniqueness +  connectedSquares)
+        return totalFitness
 
     #creates a new generation from the passed one using crossover and mutation
     #Create 2 children for every two children selected
-    def Reproduce(self, currentGeneration, numberOfNumbers):
-        newGeneration = [[] for i in range(2)]
+    def Reproduce(self, currentGeneration):
+        newGeneration = list([[] for i in range(2)])
 
         for i in range(0, int(len(currentGeneration[Population])/2)):
-            selectedIndivs = random.choices(currentGeneration[Population], currentGeneration[Fitnesses], k = 2)
+            selectedParent1 = currentGeneration[Population][currentGeneration[Fitnesses].index(random.choices(currentGeneration[Fitnesses], weights=currentGeneration[Fitnesses])[0])]
+            selectedParent2 = currentGeneration[Population][currentGeneration[Fitnesses].index(random.choices(currentGeneration[Fitnesses], weights=currentGeneration[Fitnesses])[0])]
 
-            newChild1, newChild2  = selectedIndivs #self.Crossover(selectedIndivs, numberOfNumbers)
+            newChild1, newChild2  = self.Crossover(selectedParent1, selectedParent2)
 
             if (np.random.random() < self.mutRate):
-                newChild1 = self.Mutate(newChild1, numberOfNumbers)
+                newChild1 = self.Mutate(newChild1)
             if (np.random.random() < self.mutRate):
-                newChild2 = self.Mutate(newChild2, numberOfNumbers)
+                newChild2 = self.Mutate(newChild2)
 
             newGeneration[Population].append(newChild1)
             newGeneration[Fitnesses].append(self.DetermineFitness(newChild1))
             newGeneration[Population].append(newChild2)
             newGeneration[Fitnesses].append(self.DetermineFitness(newChild2))
-
+            
         return newGeneration
 
     #Create 2 new children from the 2 selected parents
-    def Crossover(self, selectedIndivs, numberOfNumbers):
+    def Crossover(self, parent1, parent2):
+        child1 = [row[:] for row in parent1]
+        child2 = [row[:] for row in parent2]
 
-        child1 = np.zeros((len(selectedIndivs[0]), len(selectedIndivs[0])))
-        child2 = np.zeros((len(selectedIndivs[0]), len(selectedIndivs[0])))
-        child1 = child1.tolist()
-        child2 = child2.tolist()
-
-        for i in range(0, len(selectedIndivs[0])):
-            for j in range(0, len(selectedIndivs[0][0])):
-                gene = random.choice(selectedIndivs)
-                attempts = 0
-                while(gene[i][j] == 0):
-                    gene = random.choice(selectedIndivs)
-                    attempts += 1
-                    if attempts >= 5:
-                        break
-                child1[i][j] = gene[i][j]
-
-        for i in range(0, len(selectedIndivs[0])):
-            for j in range(0, len(selectedIndivs[0][0])):
-                gene = random.choice(selectedIndivs)
-                attempts = 0
-                while(gene[i][j] == 0):
-                    gene = random.choice(selectedIndivs)
-                    attempts += 1
-                    if attempts >= 5:
-                        break
-                child2[i][j] = gene[i][j]
+        for i in range(0, self.gridSize):
+            for j in range(0, self.gridSize):
+                if self.__countNumbersInSquare(child1[i][j]) >= 3:
+                    child1[i][j] = parent1[i][j] | parent2[i][j]
+                if self.__countNumbersInSquare(child2[i][j]) >= 3:
+                    child2[i][j] = parent1[i][j] | parent2[i][j]
 
         return (child1, child2)
 
     #Use a greedy algorithm to try and get a valid path
-    def Mutate(self, individual, numberOfNumbers):
-        numberPath = random.randint(1, numberOfNumbers)
-        curNumCoordList = list(zip(np.where(np.array(self.grid) == numberPath)[0], np.where(np.array(self.grid) == numberPath)[1]))
-
-        #reset path for selected number
-        for i in range(0, self.gridSize):
-            for j in range(0, self.gridSize):
-                if individual[i][j] == numberPath:
-                    individual[i][j] = 0
-
-        individual[curNumCoordList[0][0]][curNumCoordList[0][1]] = numberPath
-        individual[curNumCoordList[1][0]][curNumCoordList[1][1]] = numberPath
-
-        #Create new random path for the number
-        indexes = []
-
-        #generate list of starting number locations
-        for j in range(1, self.NumberofNumbers + 1):
-            foundIndex = np.where(self.grid == j)
-            indexes.append(list(zip(foundIndex[0], foundIndex[1])))
-        #while guesses:
-            #pick random starting number, and build path from it
-            #currentNumber = guesses.pop()
-        startNumIndex = random.randint(0,1)
-        finishNumIndex = int(not startNumIndex)
-        curX, curY = indexes[numberPath - 1][startNumIndex]
-        finishX, finishY = indexes[numberPath - 1][finishNumIndex]
-
-        while True:
-            curX, curY = self.__FindRandomAdjacentPath(curX, curY, individual, finishX, finishY)
-
-            #stuck, delete partial path
-            if curX == -1 and curY == -1:
-                for i in range(0, self.gridSize):
-                    for j in range(0, self.gridSize):
-                        if individual[i][j] == numberPath and not (i == finishX and j == finishY) and not (i == indexes[numberPath - 1][startNumIndex][0] and j == indexes[numberPath - 1][startNumIndex][1]):
-                            individual[i][j] = 0
-                break
-            
-            #found finish, path is good
-            if curX == -2 and curY == -2:
-                break
-
-            individual[curX][curY] = numberPath
+    def Mutate(self, individual):
+        i = 0 
+        j = 0
+        aStaticNum = True
+        while(aStaticNum):
+            i = random.randint(0, self.gridSize - 1)
+            j = random.randint(0, self.gridSize - 1)
+            #make sure we don't replace a starting num
+            if self.grid[i][j] == 0:
+                individual[i][j] ^= (1 << math.floor(random.randint(0, (self.NumberofNumbers - 1))))
+                aStaticNum = False
 
         return individual
 
@@ -264,14 +199,85 @@ class Genetic():
     def RunAlgorithm(self):
         currentGeneration = self.CreateInitialGeneration()
 
+        runBestFit = 0
+        runBestInd = np.zeros((self.gridSize, self.gridSize), dtype=int)
+        maxes= []
+        averages = []
+        maxForGen = 0
+        avgForGen = 0
+        # # 527 max for fitness
         for i in range(0, self.cutoff):
-            currentGeneration = self.Reproduce(currentGeneration, self.NumberofNumbers)
-            print(f'Generation {i}, Best Fit',  max(currentGeneration[Fitnesses]), 'Worst:', min(currentGeneration[Fitnesses]) )
-                
-        print("Finished Running!")
-        return currentGeneration
+            currentGeneration = self.Reproduce(currentGeneration)
+            print("Gen ", i, "| Fitness (best/avg):", maxForGen, "/", avgForGen)
+
+            maxForGen = max(currentGeneration[Fitnesses])
+            avgForGen = sum(currentGeneration[Fitnesses])/len(currentGeneration[Fitnesses])
+
+            if maxForGen >= runBestFit:
+               runBestFit = maxForGen
+               runBestInd = currentGeneration[Population][currentGeneration[Fitnesses].index(maxForGen)]
+            maxes.append(maxForGen)
+            averages.append(avgForGen)
+
+        # print("best Fit from run:", runBestFit)
+        # print("best Ind\n", np.array(runBestInd))
+
+        return (runBestInd, maxes, averages)
 
     #Return the number of numbers
     def GetNumberOfNumbers(self):
         return self.NumberofNumbers
 
+    def BuildAggregateSolution(self, wisemen, gridSize, numberOfNumbers):
+
+        agregateSolution = []
+        #create 3d array
+        for i in range(0, gridSize):
+            agregateSolution.append([])
+            for j in range(0, gridSize):
+                agregateSolution[i].append([])
+                for k in range(0, numberOfNumbers):
+                    agregateSolution[i][j].append(0)
+
+        for wiseman in wisemen:
+            for i in range(0, gridSize):
+                for j in range(0, gridSize):
+                    numberIndexes = self.__findNumberIndexesInSquare(wiseman[i][j])
+                    for k in range(0, len(numberIndexes)):
+                        agregateSolution[i][j][numberIndexes[k]] += 1
+
+        print(agregateSolution)
+        return agregateSolution
+
+    def TranslateAggregateSolutionIntoFinalGraph(self, agregateSolution, gridSize):
+        finalGrid = np.zeros((gridSize, gridSize), dtype=int)
+
+        for i in range(0, gridSize):
+            for j in range(0, gridSize):
+                if self.grid[i][j] != 0:
+                    if self.grid[i][j] == 33:
+                        self.grid[i][j] = 1
+                        finalGrid[i][j] = 1
+                    if self.grid[i][j] == 34:
+                        self.grid[i][j] = 2
+                        finalGrid[i][j] = 2
+                    if self.grid[i][j] == 36:
+                        self.grid[i][j] = 3 
+                        finalGrid[i][j] = 3
+                    if self.grid[i][j] == 40:
+                        self.grid[i][j] = 4
+                        finalGrid[i][j] = 4
+                    if self.grid[i][j] == 48:
+                        self.grid[i][j] = 5
+                        finalGrid[i][j] = 5
+                    finalGrid[i][j] = self.grid[i][j]
+                else:
+                    finalGrid[i][j] = (agregateSolution[i][j].index(max(agregateSolution[i][j])) + 1)
+     
+        return finalGrid
+
+    def WisdomOfCrowds(self, wisemen, gridSize, numberOfNumbers):
+        agregateSolution = self.BuildAggregateSolution(wisemen, gridSize, numberOfNumbers)
+        solution = self.TranslateAggregateSolutionIntoFinalGraph(agregateSolution, gridSize)
+        print("Sol:\n",np.array(solution))
+        return solution

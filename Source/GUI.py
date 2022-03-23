@@ -36,3 +36,20 @@ def DisplayGame(array, startArray, numbersNeeded, suffix, show=False):
     plt.savefig(FileName)
     if show:
         plt.show()
+
+    plt.close()
+
+def PlotGenerations(maxOverTime, avgOverTime, name):
+
+
+    # for i in range(0, len(avgOverTime, maxOverTime)):
+    fig, ax = plt.subplots()
+    ax.plot(maxOverTime)
+    ax.plot(avgOverTime)
+
+    plt.legend(labels=["Max", "Averages"])
+    plt.xlabel("Generations")
+    plt.ylabel("Fitness")
+
+    plt.savefig("Output/" + name + ".png")
+    plt.close()
